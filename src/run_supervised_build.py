@@ -6,6 +6,7 @@ from supervisor import Supervisor
 from ignite import ignite
 from burn_harness import burn_harness
 from residue import Residue
+from autonomy import autonomous_cycle
 
 
 def create_supervisor():
@@ -32,12 +33,8 @@ def create_supervisor():
 
 
 def run_pipeline(sup):
-    results = [
-        sup.run("burn", "y"),
-        sup.run("ignite", "y"),
-        sup.run("residue", "y"),
-    ]
-    return results, sup.residue()
+    cycle = autonomous_cycle(sup)
+    return cycle["results"], cycle["residue"]
 
 
 def main():

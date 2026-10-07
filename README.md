@@ -1,35 +1,29 @@
 # CLOUDBURNER17
 
-CLOUDBURNER17 is a zero-data, autonomous, harmonious execution engine. Its
-supervised pipeline keeps step state and results in memory and does not create
-persistent benchmark, superblock, burn-report, log, or state artifacts.
+CLOUDBURNER17 is a zero-data, autonomous, harmonious execution engine. It
+keeps supervised state in memory, performs no external calls, and creates no
+persistent artifacts, benchmark output, superblocks, burn reports, or logs.
 
-## Zero-data behavior
+## Deterministic supervised execution
 
-- The supervisor installs a runtime guard that rejects file-writing and
-  filesystem-mutation operations.
-- Step results and the execution trace remain in memory only.
-- The harmony stabilizer requires the registered step order and computes a
-  reproducible sentinel from canonical in-memory step results.
-- Pipeline output is sent to standard output or displayed transiently in the
-  frontend; it is not saved by the application.
+The supervisor gates execution in the fixed `burn → ignite → residue` order.
+The stabiliser validates each step's output contract and state transition; the
+harmony layer normalises ignition lambdas and smooths residue values. The
+autonomy substrate runs the complete cycle and checks that canonical,
+in-memory residue hashing produces a reproducible sentinel.
 
-## Run the supervised pipeline
+The runtime filesystem guard blocks persistent write and mutation operations.
+Python bytecode output is disabled by the documented commands and CI. Pipeline
+results are returned in memory and displayed transiently on standard output or
+in the frontend.
+
+## Run and verify
 
 ```sh
 python -B src/run_supervised_build.py
-```
-
-The pipeline executes `burn`, `ignite`, and `residue` in order. Run it again
-with the same inputs to confirm that it produces the same sentinel.
-
-## Verify zero-data enforcement
-
-```sh
 python -B -m unittest discover -s tests -v
+PYTHONPATH=src python -B -c "from autonomy import self_verify; assert self_verify()"
 ```
 
-The tests verify deterministic results, reject out-of-order supervised steps,
-and confirm that persistent file writes are blocked. The GitHub Actions
-workflow runs these checks and the supervised pipeline with bytecode writing
-disabled.
+The pipeline prints the same sentinel for identical inputs and step order.
+See [`zero_data_contract.md`](zero_data_contract.md) for the operating rules.

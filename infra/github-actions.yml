@@ -20,3 +20,5 @@ jobs:
         run: python -B -m unittest discover -s tests -v
       - name: Run supervised pipeline with zero-data guard
         run: python -B src/run_supervised_build.py
+      - name: Verify autonomous cycle and reproducible sentinel
+        run: PYTHONPATH=src python -B -c "from autonomy import self_verify; assert self_verify()"
