@@ -23,13 +23,18 @@ def stabilise_step(step_name, output):
         raise ValueError("step name must be a non-empty string")
 
     if step_name == "burn":
-        if not isinstance(output, Mapping) or set(output) != {"lambda_updated"}:
-            raise ValueError("burn output must contain only lambda_updated")
+        if not isinstance(output, Mapping) or set(output) != {
+            "lambda_updated",
+            "curvature_gain",
+        }:
+            raise ValueError("burn output must contain lambda_updated and curvature_gain")
         values = output["lambda_updated"]
         if not isinstance(values, (list, tuple)) or not values or not all(
             _finite_number(value) and value >= 0 for value in values
         ):
             raise ValueError("burn lambda_updated must be a non-empty finite vector")
+        if not _finite_number(output["curvature_gain"]) or output["curvature_gain"] < 1:
+            raise ValueError("burn curvature_gain must be finite and at least one")
     elif step_name == "ignite":
         engine = output.get("InvariantEngine") if isinstance(output, Mapping) else None
         if not isinstance(engine, Mapping) or set(engine) != {"sound", "lambda", "times"}:

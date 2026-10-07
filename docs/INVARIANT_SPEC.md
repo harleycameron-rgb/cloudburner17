@@ -11,8 +11,9 @@ Create an `AdmissionCandidate` for each agent. Each candidate supplies:
 - `transform(state)`: its state action `L_g`.
 - `preserves_curvature`: confirmation that its action belongs to the
   curvature-preserving group on the domain being admitted.
-- `preserves_topology_flow`: confirmation that it preserves `τ(M)` and its
-  flow structure.
+- `preserves_topology_flow(state)`: verifies manifold and flow continuity for
+  each transformed cycle state. The live submission API compares the supplied
+  before/after manifold and flow snapshots.
 - `observe(transformed_state)`: whether the transformed massless state was
   observed.
 - `curvature_continuous(transformed_state)`: whether curvature is continuous
@@ -30,11 +31,12 @@ transformed residues; residue minimization is evaluated against the supplied
 candidate set. A candidate is admitted only if it passes every contract
 predicate, has zero cycle drift, and attains the minimum residue score.
 
-The domain-wide curvature and topology/flow preservation fields are explicit
-candidate attestations because these properties cannot be inferred from a
-finite sample. The engine independently checks massless-state preservation and
-cycle drift on the supplied states. Observation and local continuity are also
-candidate callbacks so callers can apply the semantics of their state space.
+Curvature preservation remains an explicit domain-level candidate attestation.
+Topology/flow preservation is a callback evaluated for each transformed cycle
+state; the live submission API verifies equality of manifold and flow snapshots.
+These finite checks do not establish domain-wide properties beyond the supplied
+states. The engine independently checks massless-state preservation and cycle
+drift. Observation and local curvature continuity are candidate callbacks.
 
 ## Torsion commitment
 

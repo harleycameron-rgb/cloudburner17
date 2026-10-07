@@ -36,6 +36,8 @@ input rows; they do not use global random state.
   sentinel drift validation
 - `src/waxtablet_adapter.py`: `run`, `benchmark`, and `harmonic` actions with
   JSON-safe responses
+- `src/multi_llm_scheduler.py`: task, LLM-weight, and timing alignment
+- `src/admission.py`: cycle-based topology continuity and live submission checks
 
 The Waxtablet adapter retains transient state in its process; it is not
 stateless between calls, but does not persist that state.
@@ -54,6 +56,9 @@ stateless between calls, but does not persist that state.
 
 The executable admission and torsion APIs are implemented in
 `src/admission.py`; see [`docs/INVARIANT_SPEC.md`](docs/INVARIANT_SPEC.md).
+The backend accepts live admission payloads at `POST /admission`; the Waxtablet
+adapter exposes the same check through its `admission` action. Burn diagnostics
+include the adaptive curvature gain.
 The text assets specify contracts and schemas and do not alter runtime
 persistence behavior.
 
