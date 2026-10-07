@@ -57,7 +57,7 @@ async function run(step) {
 
 
 @app.post("/supervise/{step}/{decision}")
-def supervise(step: str, decision: str):
+async def supervise(step: str, decision: str):
     try:
         result = sup.run(step, decision)
     except Exception:

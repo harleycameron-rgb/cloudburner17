@@ -28,3 +28,16 @@ jobs:
           python -B -m src.harmony
           python -B -m src.autonomy
           python -B -m src.agent_core
+      - name: Build and smoke-test container
+        run: |
+          docker build -t invariant-engine -f backend/Dockerfile .
+          docker run --rm -d --name cloudburner17-smoke -p 18000:8000 invariant-engine
+          trap 'docker stop cloudburner17-smoke >/dev/null 2>&1 || true' EXIT
+          for attempt in $(seq 1 30); do
+            if response=$(curl --silent --show-error --fail -X POST http://localhost:18000/supervise/burn/y 2>/dev/null); then
+              echo "$response" | grep -q '"status":"completed"'
+              exit 0
+            fi
+            sleep 1
+          done
+          exit 1
