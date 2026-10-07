@@ -106,4 +106,3 @@ designed for supervised execution, drift detection, harmonic
 stabilisation, and reproducible sentinel generation. All modules
 operate in memory, enforce surface/core separation, and maintain
 packet integrity across the entire lifecycle.
-

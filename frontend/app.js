@@ -1,7 +1,7 @@
 async function runStep(step) {
   const res = await fetch(`/supervise/${step}/y`, { method: "POST" });
   const data = await res.json();
-  console.log(data);
+  document.getElementById("output").textContent = JSON.stringify(data);
 }
 
 document.getElementById("steps").innerHTML = `

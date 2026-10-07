@@ -1,29 +1,26 @@
-from supervisor import Supervisor
-from ignite import ignite
-from burn_harness import burn_harness
-from residue import Residue
+import sys
 
-sup = Supervisor()
+sys.dont_write_bytecode = True
 
-sup.add_step(
-    "burn",
-    action=lambda: burn_harness([1,2,3],[0.5,0.7],[0,1,2]),
-    verify=lambda out: "lambda_updated" in out
-)
+if __package__:
+    from .autonomy import autonomous_cycle
+    from .pipeline import create_supervisor
+else:
+    from autonomy import autonomous_cycle
+    from pipeline import create_supervisor
 
-sup.add_step(
-    "ignite",
-    action=lambda: ignite([1,2,3],[0.5,0.7],[0,1,2]),
-    verify=lambda out: "InvariantEngine" in out
-)
 
-sup.add_step(
-    "residue",
-    action=lambda: Residue([1.0,2.0,3.0],"mapping-definition"),
-    verify=lambda out: isinstance(out[0], float)
-)
+def run_pipeline(sup):
+    cycle = autonomous_cycle(sup)
+    return cycle["results"], cycle["residue"]
 
-print(sup.run("burn", "y"))
-print(sup.run("ignite", "y"))
-print(sup.run("residue", "y"))
-print(sup.residue())
+
+def main():
+    results, residue = run_pipeline(create_supervisor())
+    for result in results:
+        print(result)
+    print(residue)
+
+
+if __name__ == "__main__":
+    main()

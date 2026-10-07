@@ -7,22 +7,23 @@ ENGINE_MANIFEST = {
         "stabiliser",
         "harmony",
         "autonomy",
-        "orchestrator"
+        "orchestrator",
+        "agent_interface",
+        "agent_memory",
+        "agent_validator",
+        "waxtablet_adapter",
     ],
     "invariants": {
         "zero_data": True,
         "deterministic_execution": True,
         "sentinel_reproducibility": True,
-        "no_persistence": True
+        "no_persistence": True,
     },
     "cycles": {
         "harmonic": {
             "steps": ["burn", "ignite", "residue"],
             "autonomy": True,
-            "stabiliser": True
+            "stabiliser": True,
         }
-    }
+    },
 }
-
-
----

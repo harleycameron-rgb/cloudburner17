@@ -1,116 +1,72 @@
-from agent_core import CloudburnerAgent
-from benchmark_agent import BenchmarkAgent
-from stabiliser import enforce_zero_data, harmonise_state, verify_sentinel
-from harmony import align_modules, unify_lambdas, smooth_residue
-from autonomy import autonomous_cycle, invariant_loop, self_verify
-
-import pandas as pd
-import numpy as np
+if __package__:
+    from .agent_core import CloudburnerAgent
+    from .autonomy import invariant_loop, self_verify
+    from .benchmark_agent import BenchmarkAgent
+    from .stabiliser import enforce_zero_data, harmonise_state, verify_sentinel
+else:
+    from agent_core import CloudburnerAgent
+    from autonomy import invariant_loop, self_verify
+    from benchmark_agent import BenchmarkAgent
+    from stabiliser import enforce_zero_data, harmonise_state, verify_sentinel
 
 
 class Orchestrator:
-    """
-    The unified CLOUDBURNER17 orchestration layer.
-    Binds Agent Core + Benchmark Agent + Harmony + Autonomy + Stabiliser.
-    """
+    """Coordinate the supervised agent and optional in-memory benchmarks."""
 
     def __init__(self):
         enforce_zero_data()
-
-        # Primary agent
         self.agent = CloudburnerAgent()
-
-        # Benchmark agent placeholder (data injected later)
         self.benchmark = None
-
-        # Orchestration state
         self.state_log = []
         self.sentinel = None
-
-    # ------------------------------------------------------------
-    # INITIALISATION
-    # ------------------------------------------------------------
 
     def initialise(self):
         self.agent.initialise()
         return {"status": "initialised"}
 
-    # ------------------------------------------------------------
-    # RUN PRIMARY AGENT
-    # ------------------------------------------------------------
-
     def run_agent(self):
         result = self.agent.execute()
         self.state_log.append(result)
         self.sentinel = result["sentinel"]
-        verify_sentinel(self.sentinel)
+        if not verify_sentinel(self.sentinel):
+            raise RuntimeError("agent sentinel is not reproducible")
         return result
 
-    # ------------------------------------------------------------
-    # RUN BENCHMARK AGENT
-    # ------------------------------------------------------------
-
-    def load_benchmark_data(self, df):
-        """Inject benchmark dataframe."""
-        self.benchmark = BenchmarkAgent(df)
+    def load_benchmark_data(self, data):
+        self.benchmark = BenchmarkAgent(data)
 
     def run_benchmark(self):
         if self.benchmark is None:
             raise RuntimeError("Benchmark data not loaded")
-
         results = self.benchmark.run()
         leakage = self.benchmark.worst_case_leakage()
-
-        self.state_log.append({
-            "benchmark_results": results.to_dict(orient="records"),
-            "worst_case_leakage": leakage
-        })
-
-        return {
-            "benchmark": "complete",
-            "worst_case_leakage": leakage
+        summary = {
+            "benchmark_results": results,
+            "worst_case_leakage": leakage,
         }
-
-    # ------------------------------------------------------------
-    # HARMONIC CYCLE
-    # ------------------------------------------------------------
+        self.state_log.append(summary)
+        return {"benchmark": "complete", "worst_case_leakage": leakage}
 
     def harmonic_cycle(self):
-        """
-        Runs a deterministic harmonic cycle across all agents.
-        """
-        autonomous_cycle(self.agent.supervisor)
-        invariant_loop()
-        self_verify()
-
-        harmonised = harmonise_state(self.state_log)
-        return {"harmonic_state": harmonised}
-
-    # ------------------------------------------------------------
-    # FULL ENGINE EXECUTION
-    # ------------------------------------------------------------
+        harmonise_state(self.agent.state)
+        cycle = invariant_loop()
+        if not self_verify():
+            raise RuntimeError("harmonic cycle verification failed")
+        return {
+            "harmonic_state": True,
+            "sentinel": cycle["residue"]["sentinel"],
+        }
 
     def run_full_engine(self):
-        """
-        Executes the entire CLOUDBURNER17 engine:
-        - Agent Core
-        - Benchmark Agent (if loaded)
-        - Harmonic Cycle
-        - Sentinel verification
-        """
         out_agent = self.run_agent()
-
-        out_benchmark = None
-        if self.benchmark:
-            out_benchmark = self.run_benchmark()
-
+        out_benchmark = self.run_benchmark() if self.benchmark is not None else None
         out_harmonic = self.harmonic_cycle()
-
-        verify_sentinel(self.sentinel)
-
+        if not verify_sentinel(self.sentinel):
+            raise RuntimeError("engine sentinel is not reproducible")
+        enforce_zero_data()
         return {
             "agent": out_agent,
             "benchmark": out_benchmark,
             "harmonic": out_harmonic,
-            "sentinel": self.sentinel
+            "sentinel": self.sentinel,
         }
