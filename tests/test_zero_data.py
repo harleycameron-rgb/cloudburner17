@@ -1,3 +1,4 @@
+import hashlib
 import os
 import subprocess
 import sys
@@ -100,7 +101,7 @@ class ZeroDataPipelineTests(unittest.TestCase):
         self.assertEqual(received, [geometry])
         self.assertEqual(
             commitment,
-            __import__("hashlib").sha256(bytes.fromhex(previous_hash) + b"\x04").hexdigest(),
+            hashlib.sha256(bytes.fromhex(previous_hash) + b"\x04").hexdigest(),
         )
 
     def test_geometric_benchmark_is_deterministic_and_validated(self):
