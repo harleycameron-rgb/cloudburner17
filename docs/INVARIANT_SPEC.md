@@ -58,6 +58,22 @@ representation). Components are never derived from the previous hash.
   drift, and candidate-set residue minimization.
 - Final admission: `AdmissionResult.admitted`.
 
+## Runtime ignition
+
+`src/runtime_ignition.py` provides `run_runtime_ignition(candidates, cycle,
+assets, derive_components, candidate_name=None)`. `RuntimeAssets` carries the
+already-loaded topology map, curvature/flow contract, zero residue state,
+non-empty massless state sequence, torsion modulus, and SHA-256 genesis hash.
+The function checks these in-memory values, ignites the six zero-state stubs,
+then applies the existing admission and torsion APIs. It returns a `LIVE` result
+with runtime topology/massless seals and the per-cycle torsion/hash chain, or
+raises `RuntimeIgnitionError` on a failed ignition contract.
+
+This API performs no filesystem access. Any host-side asset loading must occur
+before the zero-data guard is installed; passing a path is not supported.
+Runtime ignition additionally requires the admitted candidate's cycle residue
+score to be zero, as required by the live-engine contract.
+
 Run the existing tests with:
 
 ```sh

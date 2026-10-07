@@ -19,9 +19,75 @@ from orchestrator import Orchestrator
 from benchmark_agent import BenchmarkAgent, compute_benchmark_row
 from waxtablet_adapter import WaxtabletAdapter
 from admission import AdmissionCandidate, commit_torsion, evaluate_admission
+from runtime_ignition import RuntimeAssets, RuntimeIgnitionError, run_runtime_ignition
 
 
 class ZeroDataPipelineTests(unittest.TestCase):
+    def test_runtime_ignition_runs_admission_and_torsion_cycle(self):
+        massless = {"kappa": 0.0, "rho": 0.0, "kappa_p": 1.0, "kappa_s": 1.0}
+        cycle = [dict(massless), dict(massless)]
+        candidate = AdmissionCandidate(
+            name="identity",
+            transform=lambda item: dict(item),
+            preserves_curvature=True,
+            preserves_topology_flow=True,
+            observe=lambda item: item["kappa"] == 0 and item["rho"] == 0,
+            curvature_continuous=lambda item: True,
+        )
+        assets = RuntimeAssets(
+            topology_map="loaded topology",
+            curvature_flow="loaded curvature flow",
+            residue_state=0,
+            massless_states=[massless],
+            torsion_modulus=11,
+            genesis_hash="00" * 32,
+        )
+
+        result = run_runtime_ignition(
+            [candidate], cycle, assets, lambda state: (1, 2, 3)
+        )
+
+        self.assertEqual(result.status, "LIVE")
+        self.assertTrue(result.candidate.admitted)
+        self.assertEqual(len(result.legs), 6)
+        self.assertTrue(all(leg.state.root and "stable" in leg.diagnostic() for leg in result.legs))
+        self.assertEqual(result.topology_runtime, assets.topology_map)
+        self.assertEqual(result.massless_runtime, (massless,))
+        self.assertEqual(result.torsion_runtime, {0: 6, 1: 6})
+        self.assertEqual(set(result.hash_runtime), {0, 1, 2})
+
+    def test_runtime_ignition_aborts_on_invalid_preflight_and_nonzero_residue(self):
+        massless = {"kappa": 0.0, "rho": 0.0, "kappa_p": 1.0, "kappa_s": 1.0}
+        candidate = AdmissionCandidate(
+            name="identity",
+            transform=lambda item: dict(item),
+            preserves_curvature=True,
+            preserves_topology_flow=True,
+            observe=lambda item: True,
+            curvature_continuous=lambda item: True,
+        )
+        assets = RuntimeAssets(
+            topology_map="loaded topology",
+            curvature_flow="loaded curvature flow",
+            residue_state=0,
+            massless_states=[massless],
+            torsion_modulus=11,
+            genesis_hash="00" * 32,
+        )
+        with self.assertRaisesRegex(RuntimeIgnitionError, "residue.state"):
+            run_runtime_ignition(
+                [candidate],
+                [massless],
+                RuntimeAssets(**{**assets.__dict__, "residue_state": 1}),
+                lambda state: (1, 2, 3),
+            )
+
+        nonzero_residue = {**massless, "rho": 0.5}
+        with self.assertRaisesRegex(RuntimeIgnitionError, "residue to remain 0"):
+            run_runtime_ignition(
+                [candidate], [nonzero_residue], assets, lambda state: (1, 2, 3)
+            )
+
     def test_multi_llm_admission_contract(self):
         state = {"kappa": 0.0, "rho": 0.0, "kappa_p": 1.0, "kappa_s": 1.0}
         candidate = AdmissionCandidate(

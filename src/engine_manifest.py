@@ -12,6 +12,7 @@ ENGINE_MANIFEST = {
         "agent_memory",
         "agent_validator",
         "waxtablet_adapter",
+        "runtime_ignition",
     ],
     "invariants": {
         "zero_data": True,
