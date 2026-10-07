@@ -18,7 +18,14 @@ from engine_manifest import ENGINE_MANIFEST
 from orchestrator import Orchestrator
 from benchmark_agent import BenchmarkAgent, compute_benchmark_row
 from waxtablet_adapter import WaxtabletAdapter
-from admission import AdmissionCandidate, commit_torsion, evaluate_admission
+from admission import (
+    AdmissionCandidate,
+    commit_torsion,
+    evaluate_admission,
+    evaluate_submission,
+)
+from burn_harness import burn_harness
+from multi_llm_scheduler import schedule_tasks
 
 
 class ZeroDataPipelineTests(unittest.TestCase):
@@ -28,7 +35,7 @@ class ZeroDataPipelineTests(unittest.TestCase):
             name="identity",
             transform=lambda item: dict(item),
             preserves_curvature=True,
-            preserves_topology_flow=True,
+            preserves_topology_flow=lambda item: True,
             observe=lambda item: item["kappa"] == 0 and item["rho"] == 0,
             curvature_continuous=lambda item: True,
         )
@@ -52,7 +59,7 @@ class ZeroDataPipelineTests(unittest.TestCase):
                 "kappa_s": 3.0,
             },
             preserves_curvature=True,
-            preserves_topology_flow=True,
+            preserves_topology_flow=lambda item: True,
             observe=lambda item: True,
             curvature_continuous=lambda item: True,
         )
@@ -71,7 +78,7 @@ class ZeroDataPipelineTests(unittest.TestCase):
                 name=name,
                 transform=lambda item: {**item, "rho": residue},
                 preserves_curvature=True,
-                preserves_topology_flow=True,
+                preserves_topology_flow=lambda item: True,
                 observe=lambda item: True,
                 curvature_continuous=lambda item: True,
             )
@@ -83,6 +90,87 @@ class ZeroDataPipelineTests(unittest.TestCase):
         self.assertFalse(results[0].residue_minimized)
         self.assertTrue(results[1].residue_minimized)
         self.assertTrue(results[1].admitted)
+
+    def test_topology_continuity_is_checked_for_each_state(self):
+        state = {"kappa": 0.0, "rho": 0.0, "kappa_p": 1.0, "kappa_s": 1.0}
+        candidate = AdmissionCandidate(
+            name="discontinuous",
+            transform=lambda item: dict(item),
+            preserves_curvature=True,
+            preserves_topology_flow=lambda item: False,
+            observe=lambda item: True,
+            curvature_continuous=lambda item: True,
+        )
+
+        result, = evaluate_admission([candidate], [state], [])
+
+        self.assertFalse(result.admitted)
+        self.assertFalse(result.topology_flow_preserved)
+
+    def test_live_admission_submission_checks_topology_and_reports_diagnostics(self):
+        state = {
+            "kappa": 1.0,
+            "rho": 0.25,
+            "kappa_p": 1.0,
+            "kappa_s": 1.0,
+            "observed": True,
+            "curvature_continuous": True,
+            "manifold_before": {"nodes": [1, 2]},
+            "manifold_after": {"nodes": [1, 2]},
+            "flow_before": [1, 2],
+            "flow_after": [1, 2],
+        }
+        submission = {
+            "candidate": {"name": "live", "preserves_curvature": True},
+            "cycle": [state],
+            "massless_states": [{"kappa": 0, "rho": 0, "observed": True}],
+        }
+
+        result = evaluate_submission(submission)
+
+        self.assertTrue(result["admitted"])
+        self.assertEqual(result["curvature_drift"], 0)
+        self.assertEqual(result["residue_score"], 0.25)
+        self.assertTrue(result["topology_continuous"])
+
+        submission["cycle"][0]["flow_after"] = [2, 1]
+        self.assertFalse(evaluate_submission(submission)["admitted"])
+
+    def test_burn_harness_uses_adaptive_curvature_gain(self):
+        linear = burn_harness([0, 1, 2], [0.5, 0.7], [0, 1, 2])
+        curved = burn_harness([0, 1, 4], [0.5, 0.7], [0, 1, 2])
+
+        self.assertEqual(linear["curvature_gain"], 1)
+        self.assertGreater(curved["curvature_gain"], linear["curvature_gain"])
+        self.assertEqual(
+            curved["lambda_updated"],
+            [value * curved["curvature_gain"] for value in [0.5, 0.7]],
+        )
+        with self.assertRaisesRegex(ValueError, "same length"):
+            burn_harness([0, 1, 2], [1], [0, 1])
+
+    def test_scheduler_aligns_llms_tasks_and_timing_arguments(self):
+        class Named:
+            def __init__(self, name):
+                self.name = name
+
+        schedule = schedule_tasks(
+            [Named("llm-a"), Named("llm-b")],
+            [Named("task-a"), Named("task-b"), Named("task-c")],
+            [0.25, 0.75],
+            [2, 4, 6],
+        )
+
+        self.assertEqual(
+            schedule,
+            [
+                {"llm": "llm-a", "task": "task-a", "lambda": 0.25, "time": 2},
+                {"llm": "llm-b", "task": "task-b", "lambda": 0.75, "time": 4},
+                {"llm": "llm-a", "task": "task-c", "lambda": 0.25, "time": 6},
+            ],
+        )
+        with self.assertRaisesRegex(ValueError, "exactly 3"):
+            schedule_tasks(["llm"], ["a", "b", "c"], 1, [0, 1])
 
     def test_torsion_commitment_uses_geometric_state(self):
         previous_hash = "00" * 32
@@ -138,6 +226,26 @@ class ZeroDataPipelineTests(unittest.TestCase):
         self.assertEqual(run_result["agent"]["status"], "complete")
         self.assertIn('"sentinel"', adapter.encode(run_result))
         self.assertIn("harmonic_state", adapter.handle({"action": "harmonic"}))
+        admission_result = adapter.handle({
+            "action": "admission",
+            "submission": {
+                "candidate": {"name": "adapter", "preserves_curvature": True},
+                "cycle": [{
+                    "kappa": 0,
+                    "rho": 0,
+                    "kappa_p": 1,
+                    "kappa_s": 1,
+                    "observed": True,
+                    "curvature_continuous": True,
+                    "manifold_before": [1],
+                    "manifold_after": [1],
+                    "flow_before": [1],
+                    "flow_after": [1],
+                }],
+                "massless_states": [{"kappa": 0, "rho": 0, "observed": True}],
+            },
+        })
+        self.assertTrue(admission_result["admitted"])
         self.assertEqual(adapter.handle({"action": "unknown"})["error"], "unknown action 'unknown'")
         self.assertEqual(adapter.handle(None)["error"], "payload must be an object")
 

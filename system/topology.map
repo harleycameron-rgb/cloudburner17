@@ -3,10 +3,13 @@ TOPOLOGY MAP — CONTRACT
 State space: X carrying τ(M)
 Admissible action: L_g : X → X
 Topology-and-flow preservation:
-    P_τ(g) = 1 iff L_g preserves τ(M) and its flow structure.
+    P_τ(g, x) = 1 iff the manifold and flow snapshots at L_g(x)
+    remain continuous across the action.
 
 Curvature-preserving actions additionally satisfy:
     κ(L_g(x)) = κ(x) for every x in τ(M).
 
-This map is a specification; domain-wide preservation is supplied as an
-explicit candidate attestation to the admission API.
+The admission API evaluates topology continuity for each transformed cycle
+state. The live submission interface compares the supplied before/after
+manifold and flow snapshots; finite samples do not establish domain-wide
+preservation.

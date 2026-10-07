@@ -1,8 +1,10 @@
 import json
 
 if __package__:
+    from .admission import evaluate_submission
     from .orchestrator import Orchestrator
 else:
+    from admission import evaluate_submission
     from orchestrator import Orchestrator
 
 
@@ -31,6 +33,11 @@ class WaxtabletAdapter:
             return self.orch.run_benchmark()
         if action == "harmonic":
             return self.orch.harmonic_cycle()
+        if action == "admission":
+            try:
+                return evaluate_submission(payload.get("submission"))
+            except (TypeError, ValueError) as error:
+                return {"error": str(error)}
         return {"error": f"unknown action '{action}'"}
 
     def encode(self, response):

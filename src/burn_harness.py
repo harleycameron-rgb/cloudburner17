@@ -22,9 +22,11 @@ def _finite_vector(values, name, minimum_length):
 def burn_harness(sound, lambda_values, times):
     sound = _finite_vector(sound, "sound", 3)
     lambda_values = _finite_vector(lambda_values, "lambda_values", 1)
-    times = _finite_vector(times, "times", 3)
+    times = _finite_vector(times, "times", 1)
     if len(sound) != len(times):
         raise ValueError("sound and times must have the same length")
+    if len(times) < 3:
+        raise ValueError("times must contain at least three samples")
     if any(later <= earlier for earlier, later in zip(times, times[1:])):
         raise ValueError("times must be strictly increasing")
     if any(value < 0 for value in lambda_values):

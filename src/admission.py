@@ -1,6 +1,6 @@
 """Multi-agent admission checks for curvature-preserving invariant actions."""
 
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 import hashlib
 import math
 from numbers import Integral, Real
@@ -13,7 +13,7 @@ class AdmissionCandidate:
     name: str
     transform: Callable[[Any], Any]
     preserves_curvature: bool
-    preserves_topology_flow: bool
+    preserves_topology_flow: Callable[[Any], bool]
     observe: Callable[[Any], bool]
     curvature_continuous: Callable[[Any], bool]
 
@@ -30,6 +30,7 @@ class AdmissionResult:
     curvature_drift: float
     residue_score: float
     curvature_continuous: bool
+    topology_continuous: bool
     residue_minimized: bool
 
 
@@ -52,9 +53,6 @@ def _predicate(value, name):
 
 
 def _candidate_metrics(candidate, cycle, massless_states):
-    topology = _predicate(
-        candidate.preserves_topology_flow, "preserves_topology_flow"
-    )
     curvature_preserved = _predicate(
         candidate.preserves_curvature, "preserves_curvature"
     )
@@ -72,6 +70,7 @@ def _candidate_metrics(candidate, cycle, massless_states):
     drift = 0.0
     residue_score = 0.0
     continuous = True
+    topology = bool(cycle)
     for state in cycle:
         transformed = candidate.transform(state)
         kappa_before = _state_value(state, "kappa")
@@ -83,6 +82,10 @@ def _candidate_metrics(candidate, cycle, massless_states):
         continuous = continuous and _predicate(
             candidate.curvature_continuous(transformed), "curvature_continuous"
         )
+        topology = topology and _predicate(
+            candidate.preserves_topology_flow(transformed),
+            "preserves_topology_flow",
+        )
 
     return {
         "topology": topology,
@@ -93,6 +96,7 @@ def _candidate_metrics(candidate, cycle, massless_states):
         "drift": drift,
         "residue_score": residue_score,
         "continuous": continuous,
+        "topology_continuous": topology,
     }
 
 
@@ -102,15 +106,21 @@ def evaluate_admission(candidates, cycle, massless_states):
     States must provide finite ``kappa`` and ``rho`` values; cycle states also
     provide finite ``kappa_p`` and ``kappa_s`` values. Candidate callbacks
     implement the otherwise domain-specific topology, observation, and local
-    curvature-continuity checks.
+    curvature-continuity checks. Topology/flow preservation is checked against
+    each transformed state by ``preserves_topology_flow``.
     """
     candidates = tuple(candidates)
     cycle = tuple(cycle)
     massless_states = tuple(massless_states)
     if any(not isinstance(candidate, AdmissionCandidate) for candidate in candidates):
         raise TypeError("candidates must contain AdmissionCandidate instances")
-    if any(not callable(candidate.transform) or not callable(candidate.observe)
-           or not callable(candidate.curvature_continuous) for candidate in candidates):
+    if any(
+        not callable(candidate.transform)
+        or not callable(candidate.preserves_topology_flow)
+        or not callable(candidate.observe)
+        or not callable(candidate.curvature_continuous)
+        for candidate in candidates
+    ):
         raise TypeError("candidate actions and predicates must be callable")
     if any(not isinstance(candidate.name, str) or not candidate.name for candidate in candidates):
         raise ValueError("candidate names must be non-empty strings")
@@ -158,9 +168,56 @@ def evaluate_admission(candidates, cycle, massless_states):
             curvature_drift=metric["drift"],
             residue_score=metric["residue_score"],
             curvature_continuous=metric["continuous"],
+            topology_continuous=metric["topology_continuous"],
             residue_minimized=residue_minimized,
         ))
     return results
+
+
+def evaluate_submission(submission):
+    """Evaluate a JSON-safe admission submission with checked topology snapshots."""
+    if not isinstance(submission, Mapping):
+        raise ValueError("submission must be an object")
+    candidate_data = submission.get("candidate")
+    cycle = submission.get("cycle")
+    massless_states = submission.get("massless_states")
+    if not isinstance(candidate_data, Mapping):
+        raise ValueError("candidate must be an object")
+    if not isinstance(cycle, Sequence) or isinstance(cycle, (str, bytes)) or not cycle:
+        raise ValueError("cycle must be a non-empty sequence")
+    if (
+        not isinstance(massless_states, Sequence)
+        or isinstance(massless_states, (str, bytes))
+        or not massless_states
+    ):
+        raise ValueError("massless_states must be a non-empty sequence")
+
+    name = candidate_data.get("name")
+    preserves_curvature = candidate_data.get("preserves_curvature")
+    if not isinstance(name, str) or not name:
+        raise ValueError("candidate name must be a non-empty string")
+    if not isinstance(preserves_curvature, bool):
+        raise ValueError("candidate preserves_curvature must be a boolean")
+
+    def topology_is_continuous(state):
+        keys = ("manifold_before", "manifold_after", "flow_before", "flow_after")
+        if not isinstance(state, Mapping) or any(key not in state for key in keys):
+            raise ValueError("cycle states must include manifold and flow snapshots")
+        return (
+            state["manifold_before"] == state["manifold_after"]
+            and state["flow_before"] == state["flow_after"]
+        )
+
+    candidate = AdmissionCandidate(
+        name=name,
+        transform=lambda state: dict(state),
+        preserves_curvature=preserves_curvature,
+        preserves_topology_flow=topology_is_continuous,
+        observe=lambda state: state.get("observed"),
+        curvature_continuous=lambda state: state.get("curvature_continuous"),
+    )
+    result, = evaluate_admission((candidate,), cycle, massless_states)
+    return asdict(result)
 
 
 def commit_torsion(previous_hash, geometric_state, derive_components, modulus):
