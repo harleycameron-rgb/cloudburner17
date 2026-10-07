@@ -1,1 +1,2 @@
-# paste content here
+def potato():
+    return "potato"

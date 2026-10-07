@@ -1,1 +1,5 @@
-# paste content here
+body {
+  background: #0a0f14;
+  color: cyan;
+  font-family: monospace;
+}
