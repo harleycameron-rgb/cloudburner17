@@ -15,9 +15,48 @@ from agent_memory import AgentMemory
 from agent_validator import AgentValidator
 from engine_manifest import ENGINE_MANIFEST
 from orchestrator import Orchestrator
+from benchmark_agent import BenchmarkAgent, compute_benchmark_row
+from waxtablet_adapter import WaxtabletAdapter
 
 
 class ZeroDataPipelineTests(unittest.TestCase):
+    def test_geometric_benchmark_is_deterministic_and_validated(self):
+        row = {"x_params": [1.0, 2.0, 3.0], "p_params": [0.1, 0.2, 0.3]}
+        first = compute_benchmark_row(row, samples=32)
+        second = compute_benchmark_row(row, samples=32)
+        self.assertEqual(first, second)
+        self.assertEqual(
+            set(first),
+            {"D_surface", "D_core", "D_flow", "s0", "sp", "z0", "zp", "s0_surf", "sp_surf"},
+        )
+        agent = BenchmarkAgent([row], samples=32)
+        result = agent.run()
+        self.assertEqual(result[0], first)
+        self.assertEqual(agent.worst_case_leakage(), first["D_core"])
+        self.assertGreaterEqual(agent.structural_control(row["x_params"], [3, 2, 1]), 0)
+        with self.assertRaisesRegex(ValueError, "exactly three"):
+            compute_benchmark_row({"x_params": [1, 2], "p_params": [1, 2, 3]})
+        with self.assertRaisesRegex(ValueError, "non-zero norm"):
+            compute_benchmark_row({"x_params": [0, 0, 0], "p_params": [1, 2, 3]})
+
+    def test_waxtablet_adapter_actions_and_encoding(self):
+        adapter = WaxtabletAdapter()
+        self.assertEqual(adapter.initialise()["waxtablet_runtime"], "initialised")
+        self.assertEqual(
+            adapter.handle({"action": "benchmark"}),
+            {"error": "benchmark requires data"},
+        )
+        adapter.handle({
+            "action": "benchmark",
+            "data": [{"x_params": [1, 2, 3], "p_params": [0.1, 0.2, 0.3]}],
+        })
+        run_result = adapter.handle({"action": "run"})
+        self.assertEqual(run_result["agent"]["status"], "complete")
+        self.assertIn('"sentinel"', adapter.encode(run_result))
+        self.assertIn("harmonic_state", adapter.handle({"action": "harmonic"}))
+        self.assertEqual(adapter.handle({"action": "unknown"})["error"], "unknown action 'unknown'")
+        self.assertEqual(adapter.handle(None)["error"], "payload must be an object")
+
     def test_orchestrator_and_benchmark_are_in_memory(self):
         orchestrator = Orchestrator()
         with self.assertRaisesRegex(RuntimeError, "Benchmark data not loaded"):

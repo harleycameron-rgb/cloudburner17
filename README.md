@@ -45,3 +45,10 @@ compose the supervised agent with optional in-memory benchmark records.
 `src.agent_validator.AgentValidator` checks sentinel invariance. Benchmark
 records may be provided as mappings, record sequences, or dataframe-like
 objects; no dataframe or numerical library is required.
+
+`src.benchmark_agent.BenchmarkAgent` also supports geometric benchmark rows
+with three-value `x_params` and `p_params`. Its sample controls are generated
+deterministically from the row values, so repeated calculations do not depend
+on global random state. `src.waxtablet_adapter.WaxtabletAdapter` accepts
+in-memory `run`, `benchmark`, and `harmonic` action payloads and can encode
+responses as canonical JSON.
