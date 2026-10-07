@@ -12,6 +12,7 @@ from typing import Any, Callable
 class AdmissionCandidate:
     name: str
     transform: Callable[[Any], Any]
+    preserves_curvature: bool
     preserves_topology_flow: bool
     observe: Callable[[Any], bool]
     curvature_continuous: Callable[[Any], bool]
@@ -21,6 +22,7 @@ class AdmissionCandidate:
 class AdmissionResult:
     name: str
     admitted: bool
+    curvature_preserved: bool
     topology_flow_preserved: bool
     massless_states_preserved: bool
     massless_states_observed: bool
@@ -53,6 +55,9 @@ def _candidate_metrics(candidate, cycle, massless_states):
     topology = _predicate(
         candidate.preserves_topology_flow, "preserves_topology_flow"
     )
+    curvature_preserved = _predicate(
+        candidate.preserves_curvature, "preserves_curvature"
+    )
     massless_preserved = True
     observed = True
     for state in massless_states:
@@ -81,6 +86,7 @@ def _candidate_metrics(candidate, cycle, massless_states):
 
     return {
         "topology": topology,
+        "curvature_preserved": curvature_preserved,
         "massless_preserved": massless_preserved,
         "observed": observed,
         "false_invariants": false_invariants,
@@ -133,6 +139,8 @@ def evaluate_admission(candidates, cycle, massless_states):
             and residue_minimized
         )
         admitted = (
+            metric["curvature_preserved"]
+            and
             metric["topology"]
             and metric["massless_preserved"]
             and metric["observed"]
@@ -142,6 +150,7 @@ def evaluate_admission(candidates, cycle, massless_states):
         results.append(AdmissionResult(
             name=candidate.name,
             admitted=admitted,
+            curvature_preserved=metric["curvature_preserved"],
             topology_flow_preserved=metric["topology"],
             massless_states_preserved=metric["massless_preserved"],
             massless_states_observed=metric["observed"],
