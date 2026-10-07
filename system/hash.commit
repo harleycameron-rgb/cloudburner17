@@ -1,0 +1,7 @@
+HASH COMMITMENT CONTRACT
+
+For encoded torsion Enc(t_n), previous commitment h_n, and hash H:
+    h_{n+1} = H(h_n ∥ Enc(t_n)).
+
+The executable API uses SHA-256, a 32-byte previous digest, and a fixed-width
+unsigned big-endian torsion encoding.

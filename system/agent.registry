@@ -1,0 +1,13 @@
+MULTI-LLM CANDIDATE REGISTRY SCHEMA
+
+Candidate set: A
+Each candidate provides:
+    name
+    transform(state)
+    preserves_curvature attestation
+    preserves_topology_flow attestation
+    observe(transformed_state)
+    curvature_continuous(transformed_state)
+
+Admission is evaluated by Ω_C(g). Only candidates with Ω_C(g) = 1 belong to
+A_C*. This file defines a schema; it does not register or admit agents.

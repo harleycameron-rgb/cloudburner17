@@ -6,6 +6,11 @@ cycles. Engine state, benchmark results, and adapter buffers remain transient
 in memory. The runtime makes no network or external-state calls and does not
 persist application data, reports, or logs.
 
+The repository also includes the multi-agent invariant admission contract,
+living-invariant predicates, modular torsion/hash commitment specification, and
+textual system maps. The files under `binaries/` are placeholders, not
+executable programs.
+
 ## Core principles
 
 - Accuracy before satisfaction; transparency over drift
@@ -34,6 +39,23 @@ input rows; they do not use global random state.
 
 The Waxtablet adapter retains transient state in its process; it is not
 stateless between calls, but does not persist that state.
+
+## Invariant system ingestion assets
+
+- `engine/invariant_contract.txt`: curvature/topology preservation,
+  massless-state observation, torsion commitment, false-invariant counting,
+  and base admission contract
+- `engine/life_axiom.txt` and `engine/admission_predicate.txt`: life valuation
+  and final admission predicates
+- `system/`: topology, curvature, residue, massless-state, torsion, hash,
+  cycle, and candidate-registry contracts
+- `BINARIES.md` and `binaries/`: inventory and non-executable binary
+  placeholders
+
+The executable admission and torsion APIs are implemented in
+`src/admission.py`; see [`docs/INVARIANT_SPEC.md`](docs/INVARIANT_SPEC.md).
+The text assets specify contracts and schemas and do not alter runtime
+persistence behavior.
 
 ## Run and verify
 

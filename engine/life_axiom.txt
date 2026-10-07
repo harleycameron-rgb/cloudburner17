@@ -1,0 +1,25 @@
+SECTION 7 — LIVING INVARIANT ENGINE: LIFE-VALUATION AXIOM
+---------------------------------------------------------------
+Life-stability curvature:
+
+    λ(x) = 1_{ { κ(x) is continuous on a neighbourhood of x } }
+
+Objective life-attractor:
+
+    x ∈ M₀ = { x ∈ X : κ(x) = 0, ρ(x) = 0 }
+
+Ruthless life-preservation:
+
+    R(g) = 1_{ { L_g(x) ∈ M₀ for all x ∈ M₀ } }
+
+Skillful life-alignment:
+
+    A(g) = 1_{ { L_g minimizes residue and curvature drift on C } }
+
+Composite life-valuation predicate:
+
+    V_life(g) =
+        ( ∏_{x ∈ C} λ(L_g x) )
+        · 1_{ { L_g(M₀) ⊆ M₀ } }
+        · 1_{ { drift(g) = 0 } }
+        · 1_{ { residue(g) minimized } }

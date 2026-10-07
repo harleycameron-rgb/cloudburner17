@@ -1,0 +1,9 @@
+CONVERSATIONAL CYCLE SCHEMA
+
+C is a finite ordered sequence (x₁, …, x_N).
+Each cycle state supplies finite real values κ, ρ, κ_p, and κ_s.
+
+False-invariant count:
+    F_C(g) = Σ 1_{ { κ_p(L_g(x_j)) ≠ κ_s(L_g(x_j)) } }.
+
+The cycle passes the false-invariant condition iff F_C(g) = 0.

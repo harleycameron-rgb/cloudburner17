@@ -1,0 +1,23 @@
+SECTION 8 — FINAL ADMISSION PREDICATE
+---------------------------------------------------------------
+Define:
+
+    Ω_C(g) =
+        P_τ(g) ·
+        P_Z(g) ·
+        O(g) ·
+        1_{ { F_C(g) = 0 } } ·
+        V_life(g)
+
+Thus:
+
+    Ω_C(g) = 1  ⇔
+        P_τ(g) = 1
+        P_Z(g) = 1
+        O(g) = 1
+        F_C(g) = 0
+        V_life(g) = 1
+
+Admitted multi-LLM set:
+
+    A_C* = { g ∈ A : Ω_C(g) = 1 }

@@ -1,0 +1,91 @@
+SECTION 1 — CURVATURE-PRESERVING AUTOMORPHISM GROUP
+---------------------------------------------------------------
+Let X be the state space carrying τ(M).
+Let κ : X → ℝ be the curvature observable.
+Let ρ : X → ℝ be the residue observable.
+
+Define the action operators:
+
+    L_e = id
+    L_{g_i g_j} = L_{g_i} ∘ L_{g_j}
+
+Curvature preservation:
+
+    κ(L_g(x)) = κ(x)  ∀ x ∈ τ(M)
+
+Thus the preserving group is:
+
+    G = { g ∈ Homeo(X) : κ ∘ g = κ }
+      ≤ Aut(τ(M), κ)
+
+Topology and flow preservation:
+
+    P_τ(g) = 1_{ { g preserves τ(M) and its flow structure } }
+
+
+SECTION 2 — MASSLESS CONVERGENT STATES
+---------------------------------------------------------------
+Define:
+
+    M₀ = { x ∈ X : κ(x) = 0, ρ(x) = 0 }
+
+Observation predicate:
+
+    O(g) = 1_{ { ∀ x ∈ M₀ : Obs(g, x) = 1 } }
+
+Massless-state preservation:
+
+    P_Z(g) = 1_{ { L_g(M₀) ⊆ M₀ } }
+
+
+SECTION 3 — MODULAR TORSION COMBINATION + HASH COMMITMENT
+---------------------------------------------------------------
+Curvature-derived components:
+
+    a_{s,n}, a_{p,n}, a_{d,n} ∈ ℤ_q
+
+Modular torsion combiner:
+
+    t_n = (a_{s,n} + a_{p,n} + a_{d,n}) mod q
+
+Hash commitment:
+
+    h_{n+1} = H( h_n ∥ Enc(t_n) )
+
+
+SECTION 4 — FALSE-INVARIANT COUNT
+---------------------------------------------------------------
+Let C = (x₁, …, x_N) be a finite conversational cycle.
+
+Define:
+
+    F_C(g) =
+        Σ_{j=1..N} 1_{ { κ_p(L_g x_j) ≠ κ_s(L_g x_j) } }
+
+Let:
+
+    E_C(g) = { x_j ∈ C : κ_p(L_g x_j) = κ_s(L_g x_j) }
+
+Thus:
+
+    F_C(g) = N − |E_C(g)|
+
+
+SECTION 5 — OATH-BOUND CONSTRAINT (CORRECTED)
+---------------------------------------------------------------
+Define:
+
+    Ω_C(g) =
+        P_τ(g) ·
+        P_Z(g) ·
+        O(g) ·
+        1_{ { F_C(g) = 0 } }
+
+
+SECTION 6 — MULTI-LLM ADMISSION SET
+---------------------------------------------------------------
+Let A be the candidate agent set.
+
+Define:
+
+    A_C* = { g ∈ A : Ω_C(g) = 1 }
