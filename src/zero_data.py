@@ -1,16 +1,25 @@
 import sys
 
 
-_MUTATION_EVENTS = {
+_FILESYSTEM_EVENTS = {
     "os.chmod",
     "os.chown",
+    "os.getxattr",
     "os.link",
+    "os.listdir",
     "os.mkdir",
+    "os.mkfifo",
+    "os.mknod",
     "os.remove",
     "os.rename",
+    "os.replace",
+    "os.removexattr",
     "os.rmdir",
+    "os.scandir",
+    "os.setxattr",
     "os.symlink",
     "os.truncate",
+    "os.utime",
 }
 _installed = False
 _blocked_file_io_attempts = 0
@@ -21,9 +30,9 @@ def _deny_persistent_io(event, args):
     if event == "open":
         _blocked_file_io_attempts += 1
         raise PermissionError("file I/O is disabled")
-    elif event in _MUTATION_EVENTS:
+    elif event in _FILESYSTEM_EVENTS:
         _blocked_file_io_attempts += 1
-        raise PermissionError("filesystem mutation is disabled")
+        raise PermissionError("filesystem access is disabled")
 
 
 def install_zero_data_guard():

@@ -30,8 +30,9 @@ class ZeroDataPipelineTests(unittest.TestCase):
         self.assertIn("expected supervised step 'burn'", result["error"])
         self.assertEqual(supervisor.state_log, [])
 
-    def test_persistent_file_writes_are_rejected(self):
-        code = """from zero_data import install_zero_data_guard
+    def test_00_file_reads_and_writes_are_rejected(self):
+        code = """import os
+from zero_data import install_zero_data_guard
 install_zero_data_guard()
 for path, mode in (("/etc/hosts", "r"), ("/tmp/cloudburner17-zero-data-probe", "w")):
     try:
@@ -40,6 +41,12 @@ for path, mode in (("/etc/hosts", "r"), ("/tmp/cloudburner17-zero-data-probe", "
         assert "file I/O is disabled" in str(error)
     else:
         raise AssertionError("file I/O was allowed")
+try:
+    os.listdir("/")
+except PermissionError:
+    pass
+else:
+    raise AssertionError("filesystem enumeration was allowed")
 """
         result = subprocess.run(
             [sys.executable, "-B", "-c", code],
