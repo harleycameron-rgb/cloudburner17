@@ -35,4 +35,7 @@ sup.add_step(
 
 @app.post("/supervise/{step}/{decision}")
 def supervise(step: str, decision: str):
-    return sup.run(step, decision)
+    try:
+        return sup.run(step, decision)
+    except Exception:
+        return {"status": "failed", "step": step}
