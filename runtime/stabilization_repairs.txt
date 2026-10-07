@@ -1,0 +1,5 @@
+Burn harness → adaptive curvature-gain
+Scheduler → timing-argument parser
+Topology → continuity module
+Hash chain → geometry-dependent uniqueness
+Backend → admission linkage

@@ -49,10 +49,14 @@ stateless between calls, but does not persist that state.
   and base admission contract
 - `engine/life_axiom.txt` and `engine/admission_predicate.txt`: life valuation
   and final admission predicates
+- `runtime/`: ignition sequence and v0.3.1 stabilization specifications
 - `system/`: topology, curvature, residue, massless-state, torsion, hash,
   cycle, and candidate-registry contracts
 - `BINARIES.md` and `binaries/`: inventory and non-executable binary
   placeholders
+
+See [`CHANGELOG.md`](CHANGELOG.md) and [`release/`](release/) for release
+history and notes.
 
 The executable admission and torsion APIs are implemented in
 `src/admission.py`; see [`docs/INVARIANT_SPEC.md`](docs/INVARIANT_SPEC.md).

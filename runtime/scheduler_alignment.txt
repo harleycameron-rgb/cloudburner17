@@ -1,0 +1,2 @@
+Each agent receives its own temporal envelope.
+No global first-task override.

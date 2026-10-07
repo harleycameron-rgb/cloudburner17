@@ -1,0 +1,11 @@
+0. Pre-Ignition Checks
+1. Zero-State Emitters
+2. Massless-Convergent Lock-In
+3. Topology Seal
+4. Massless-State Seal
+5. Observation Channel
+6. False-Invariant Purge
+7. Torsion-Commit Chain
+8. Life-Valuation Ignition
+9. Admission Predicate
+10. Engine Cyclic Ignition
