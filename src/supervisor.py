@@ -1,9 +1,14 @@
 from dataclasses import dataclass
 from typing import Callable, Dict, Any
 
-from harmony import align_modules
-from stabiliser import HarmonyDriftError, Stabiliser, harmonise_state
-from zero_data import install_zero_data_guard
+if __package__:
+    from .harmony import align_modules
+    from .stabiliser import HarmonyDriftError, Stabiliser, harmonise_state
+    from .zero_data import install_zero_data_guard
+else:
+    from harmony import align_modules
+    from stabiliser import HarmonyDriftError, Stabiliser, harmonise_state
+    from zero_data import install_zero_data_guard
 
 
 @dataclass

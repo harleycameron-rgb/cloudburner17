@@ -1,4 +1,7 @@
-from harmony import smooth_residue
+if __package__:
+    from .harmony import smooth_residue
+else:
+    from harmony import smooth_residue
 
 
 def Residue(data, tag):

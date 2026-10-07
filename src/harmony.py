@@ -2,7 +2,10 @@ import math
 from collections.abc import Mapping
 from numbers import Real
 
-from stabiliser import stabilise_step
+if __package__:
+    from .stabiliser import stabilise_step
+else:
+    from stabiliser import stabilise_step
 
 
 def align_modules(modules):
@@ -41,3 +44,16 @@ def smooth_residue(residue):
     if isinstance(residue, bool) or not isinstance(residue, Real) or not math.isfinite(residue):
         raise ValueError("residue must be a finite number or (number, tag) pair")
     return round(float(residue), 12)
+
+
+def main():
+    assert unify_lambdas([0.5, 0.7]) == unify_lambdas([0.5, 0.7])
+    assert smooth_residue((6.0, "mapping-definition-6")) == (
+        6.0,
+        "mapping-definition-6",
+    )
+    print("harmony checks passed")
+
+
+if __name__ == "__main__":
+    main()

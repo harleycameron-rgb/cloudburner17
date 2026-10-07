@@ -3,8 +3,12 @@ import math
 from collections.abc import Mapping, Sequence
 from numbers import Real
 
-from harmony_stabilizer import HarmonyDriftError, HarmonyStabilizer
-from zero_data import assert_no_file_io, install_zero_data_guard
+if __package__:
+    from .harmony_stabilizer import HarmonyDriftError, HarmonyStabilizer
+    from .zero_data import assert_no_file_io, install_zero_data_guard
+else:
+    from harmony_stabilizer import HarmonyDriftError, HarmonyStabilizer
+    from zero_data import assert_no_file_io, install_zero_data_guard
 
 
 _KNOWN_STEPS = ("burn", "ignite", "residue")
@@ -99,3 +103,12 @@ class Stabiliser(HarmonyStabilizer):
     def record_step(self, name, output, verified):
         stabilise_step(name, output)
         return super().record_step(name, output, verified)
+
+
+def main():
+    enforce_zero_data()
+    print("zero-data enforcement active")
+
+
+if __name__ == "__main__":
+    main()

@@ -27,4 +27,14 @@ PYTHONPATH=src python -B -c "from autonomy import self_verify; assert self_verif
 ```
 
 The pipeline prints the same sentinel for identical inputs and step order.
-See [`zero_data_contract.md`](zero_data_contract.md) for the operating rules.
+See [`docs/zero_data_contract.md`](docs/zero_data_contract.md) for the
+operating rules.
+
+Run the autonomous agent and module checks with:
+
+```sh
+python -B -m src.agent_core
+python -B -m src.stabiliser
+python -B -m src.harmony
+python -B -m src.autonomy
+```

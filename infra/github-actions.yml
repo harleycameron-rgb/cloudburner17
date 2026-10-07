@@ -22,3 +22,9 @@ jobs:
         run: python -B src/run_supervised_build.py
       - name: Verify autonomous cycle and reproducible sentinel
         run: PYTHONPATH=src python -B -c "from autonomy import self_verify; assert self_verify()"
+      - name: Exercise package module entry points
+        run: |
+          python -B -m src.stabiliser
+          python -B -m src.harmony
+          python -B -m src.autonomy
+          python -B -m src.agent_core

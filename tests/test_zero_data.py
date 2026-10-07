@@ -13,6 +13,33 @@ from stabiliser import harmonise_state, stabilise_step, verify_sentinel
 
 
 class ZeroDataPipelineTests(unittest.TestCase):
+    def test_00_package_module_entry_points(self):
+        environment = {
+            **os.environ,
+            "PYTHONDONTWRITEBYTECODE": "1",
+        }
+        for module in ("stabiliser", "harmony", "autonomy", "agent_core"):
+            with self.subTest(module=module):
+                result = subprocess.run(
+                    [sys.executable, "-m", f"src.{module}"],
+                    cwd=os.path.abspath(os.path.join(SRC_DIR, "..")),
+                    env=environment,
+                    capture_output=True,
+                    text=True,
+                )
+                self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_agent_executes_supervised_and_autonomous_cycles(self):
+        from agent_core import CloudburnerAgent
+
+        agent = CloudburnerAgent()
+        result = agent.execute()
+        self.assertEqual(result["status"], "complete")
+        self.assertEqual(
+            [entry[0] for entry in agent.state], ["burn", "ignite", "residue"]
+        )
+        self.assertTrue(agent.autonomous_mode()["verified"])
+
     def test_pipeline_is_deterministic(self):
         first_results, first_residue = run_pipeline(create_supervisor())
         second_results, second_residue = run_pipeline(create_supervisor())

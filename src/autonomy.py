@@ -1,5 +1,11 @@
-from harmony import align_modules
-from stabiliser import enforce_zero_data, harmonise_state, verify_sentinel
+if __package__:
+    from .harmony import align_modules
+    from .pipeline import create_supervisor
+    from .stabiliser import enforce_zero_data, harmonise_state, verify_sentinel
+else:
+    from harmony import align_modules
+    from pipeline import create_supervisor
+    from stabiliser import enforce_zero_data, harmonise_state, verify_sentinel
 
 
 def autonomous_cycle(supervisor):
@@ -20,8 +26,6 @@ def autonomous_cycle(supervisor):
 
 
 def invariant_loop():
-    from run_supervised_build import create_supervisor
-
     return autonomous_cycle(create_supervisor())
 
 
@@ -34,3 +38,13 @@ def self_verify():
         and first["residue"]["sentinel"] == second["residue"]["sentinel"]
         and verify_sentinel(first["residue"]["sentinel"])
     )
+
+
+def main():
+    if not self_verify():
+        raise RuntimeError("autonomy verification failed")
+    print("autonomy checks passed")
+
+
+if __name__ == "__main__":
+    main()
