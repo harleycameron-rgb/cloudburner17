@@ -31,19 +31,23 @@ class ZeroDataPipelineTests(unittest.TestCase):
         self.assertEqual(supervisor.state_log, [])
 
     def test_persistent_file_writes_are_rejected(self):
-        code = (
-            "from zero_data import install_zero_data_guard; "
-            "install_zero_data_guard(); "
-            "open('/tmp/cloudburner17-zero-data-probe', 'w')"
-        )
+        code = """from zero_data import install_zero_data_guard
+install_zero_data_guard()
+for path, mode in (("/etc/hosts", "r"), ("/tmp/cloudburner17-zero-data-probe", "w")):
+    try:
+        open(path, mode)
+    except PermissionError as error:
+        assert "file I/O is disabled" in str(error)
+    else:
+        raise AssertionError("file I/O was allowed")
+"""
         result = subprocess.run(
             [sys.executable, "-B", "-c", code],
             env={**os.environ, "PYTHONPATH": SRC_DIR, "PYTHONDONTWRITEBYTECODE": "1"},
             capture_output=True,
             text=True,
         )
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn("persistent file I/O is disabled", result.stderr)
+        self.assertEqual(result.returncode, 0, result.stderr)
 
     def test_stabiliser_and_harmony_contracts(self):
         output = {"InvariantEngine": {"sound": [1], "lambda": [1.0], "times": [0]}}

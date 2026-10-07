@@ -12,10 +12,11 @@ harmony layer normalises ignition lambdas and smooths residue values. The
 autonomy substrate runs the complete cycle and checks that canonical,
 in-memory residue hashing produces a reproducible sentinel.
 
-The runtime filesystem guard blocks persistent write and mutation operations.
-Python bytecode output is disabled by the documented commands and CI. Pipeline
-results are returned in memory and displayed transiently on standard output or
-in the frontend.
+The runtime filesystem guard blocks file opens and filesystem mutations after
+the supervised engine starts. The backend serves its small supervisor page from
+an in-memory response rather than reading frontend assets. Python bytecode
+output is disabled by the documented commands and CI. Pipeline results are
+returned in memory and displayed transiently on standard output or in the UI.
 
 ## Run and verify
 

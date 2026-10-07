@@ -2,8 +2,9 @@
 
 CLOUDBURNER17 and its supervised modules must comply with the following rules:
 
-- **No disk writes:** persistent file creation, modification, or deletion is
-  prohibited. Runtime guards must reject filesystem writes and mutations.
+- **No file I/O:** file opens, persistent file creation, modification, or
+  deletion are prohibited after the engine starts. Runtime guards must reject
+  filesystem access and mutations.
 - **No logs:** the application must not write logs to files or retain them
   outside its active in-memory execution.
 - **No persistence:** state, traces, intermediate artifacts, benchmarks,
@@ -21,5 +22,5 @@ CLOUDBURNER17 and its supervised modules must comply with the following rules:
   contracts.
 
 CI runs tests with Python bytecode writing disabled and executes the guarded
-pipeline and autonomy self-verification. Any attempted persistent write
-rejected by the runtime guard is treated as a zero-data violation.
+pipeline and autonomy self-verification. Any file-I/O attempt rejected by the
+runtime guard is treated as a zero-data violation.

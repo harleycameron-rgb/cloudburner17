@@ -3,7 +3,7 @@ import os
 sys.path.append(os.path.abspath("../src"))
 
 from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
+from fastapi.responses import HTMLResponse
 
 from supervisor import Supervisor
 from ignite import ignite
@@ -11,7 +11,6 @@ from burn_harness import burn_harness
 from residue import Residue
 
 app = FastAPI()
-app.mount("/", StaticFiles(directory="../frontend", html=True), name="frontend")
 
 sup = Supervisor()
 
@@ -32,6 +31,23 @@ sup.add_step(
     action=lambda: Residue([1.0,2.0,3.0],"mapping-definition"),
     verify=lambda out: isinstance(out[0], float)
 )
+
+@app.get("/", response_class=HTMLResponse)
+def frontend():
+    return """<!doctype html>
+<html><head><meta charset="utf-8"><title>CLOUDBURNER17</title></head>
+<body><h1>CLOUDBURNER17 Supervisor</h1>
+<button onclick="run('burn')">Burn</button>
+<button onclick="run('ignite')">Ignite</button>
+<button onclick="run('residue')">Residue</button>
+<pre id="output"></pre>
+<script>
+async function run(step) {
+  const response = await fetch(`/supervise/${step}/y`, {method: "POST"});
+  document.getElementById("output").textContent = JSON.stringify(await response.json());
+}
+</script></body></html>"""
+
 
 @app.post("/supervise/{step}/{decision}")
 def supervise(step: str, decision: str):

@@ -4,7 +4,7 @@ from collections.abc import Mapping, Sequence
 from numbers import Real
 
 from harmony_stabilizer import HarmonyDriftError, HarmonyStabilizer
-from zero_data import assert_no_write_attempts, install_zero_data_guard
+from zero_data import assert_no_file_io, install_zero_data_guard
 
 
 _KNOWN_STEPS = ("burn", "ignite", "residue")
@@ -52,7 +52,7 @@ def stabilise_step(step_name, output):
 
 def enforce_zero_data():
     install_zero_data_guard()
-    assert_no_write_attempts()
+    assert_no_file_io()
     return True
 
 
