@@ -1,3 +1,4 @@
+import hashlib
 import os
 import subprocess
 import sys
@@ -17,9 +18,92 @@ from engine_manifest import ENGINE_MANIFEST
 from orchestrator import Orchestrator
 from benchmark_agent import BenchmarkAgent, compute_benchmark_row
 from waxtablet_adapter import WaxtabletAdapter
+from admission import AdmissionCandidate, commit_torsion, evaluate_admission
 
 
 class ZeroDataPipelineTests(unittest.TestCase):
+    def test_multi_llm_admission_contract(self):
+        state = {"kappa": 0.0, "rho": 0.0, "kappa_p": 1.0, "kappa_s": 1.0}
+        candidate = AdmissionCandidate(
+            name="identity",
+            transform=lambda item: dict(item),
+            preserves_curvature=True,
+            preserves_topology_flow=True,
+            observe=lambda item: item["kappa"] == 0 and item["rho"] == 0,
+            curvature_continuous=lambda item: True,
+        )
+
+        result, = evaluate_admission([candidate], [state], [state])
+
+        self.assertTrue(result.admitted)
+        self.assertTrue(result.massless_states_preserved)
+        self.assertTrue(result.massless_states_observed)
+        self.assertEqual(result.false_invariant_count, 0)
+        self.assertTrue(result.residue_minimized)
+
+    def test_multi_llm_admission_rejects_drift_and_false_invariants(self):
+        state = {"kappa": 1.0, "rho": 0.0, "kappa_p": 1.0, "kappa_s": 1.0}
+        candidate = AdmissionCandidate(
+            name="drifting",
+            transform=lambda item: {
+                **item,
+                "kappa": 2.0,
+                "kappa_p": 2.0,
+                "kappa_s": 3.0,
+            },
+            preserves_curvature=True,
+            preserves_topology_flow=True,
+            observe=lambda item: True,
+            curvature_continuous=lambda item: True,
+        )
+
+        result, = evaluate_admission([candidate], [state], [])
+
+        self.assertFalse(result.admitted)
+        self.assertEqual(result.false_invariant_count, 1)
+        self.assertEqual(result.curvature_drift, 1.0)
+
+    def test_residue_is_minimized_across_candidates(self):
+        state = {"kappa": 0.0, "rho": 1.0, "kappa_p": 1.0, "kappa_s": 1.0}
+
+        def candidate(name, residue):
+            return AdmissionCandidate(
+                name=name,
+                transform=lambda item: {**item, "rho": residue},
+                preserves_curvature=True,
+                preserves_topology_flow=True,
+                observe=lambda item: True,
+                curvature_continuous=lambda item: True,
+            )
+
+        results = evaluate_admission(
+            [candidate("higher", 2.0), candidate("lower", 0.5)], [state], []
+        )
+
+        self.assertFalse(results[0].residue_minimized)
+        self.assertTrue(results[1].residue_minimized)
+        self.assertTrue(results[1].admitted)
+
+    def test_torsion_commitment_uses_geometric_state(self):
+        previous_hash = "00" * 32
+        geometry = {"curvature": [1, 2, 3]}
+        received = []
+
+        def derive_components(state):
+            received.append(state)
+            return (3, 5, 7)
+
+        torsion, commitment = commit_torsion(
+            previous_hash, geometry, derive_components, modulus=11
+        )
+
+        self.assertEqual(torsion, 4)
+        self.assertEqual(received, [geometry])
+        self.assertEqual(
+            commitment,
+            hashlib.sha256(bytes.fromhex(previous_hash) + b"\x04").hexdigest(),
+        )
+
     def test_geometric_benchmark_is_deterministic_and_validated(self):
         row = {"x_params": [1.0, 2.0, 3.0], "p_params": [0.1, 0.2, 0.3]}
         first = compute_benchmark_row(row, samples=32)
