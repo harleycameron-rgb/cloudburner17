@@ -1,0 +1,8 @@
+RESIDUE STATE CONTRACT
+
+Each state carries finite real-valued κ and ρ observables.
+The massless convergent subset is:
+    M₀ = { x ∈ X : κ(x) = 0 and ρ(x) = 0 }.
+
+For a finite cycle C, residue score is the sum of |ρ(L_g(x))| over x ∈ C.
+Residue minimization is relative to the candidates evaluated together.

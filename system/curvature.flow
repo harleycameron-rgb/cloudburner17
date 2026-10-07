@@ -1,0 +1,11 @@
+CURVATURE AND FLOW CONTRACT
+
+κ : X → ℝ       curvature observable
+ρ : X → ℝ       residue observable
+τ(M)            topological state domain
+
+An action L_g preserves curvature on the admitted domain iff:
+    κ(L_g(x)) = κ(x) for all x ∈ τ(M).
+
+An action preserves topology and flow iff both structures on τ(M) are
+preserved. These are domain-level conditions, not inferred from a finite cycle.

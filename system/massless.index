@@ -1,0 +1,13 @@
+MASSLESS STATE INDEX
+
+Membership predicate:
+    x ∈ M₀ iff κ(x) = 0 and ρ(x) = 0.
+
+Preservation predicate:
+    P_Z(g) = 1 iff L_g(M₀) ⊆ M₀.
+
+Observation predicate:
+    O(g) = 1 iff every state in M₀ is observed under g.
+
+The admission API checks supplied massless states; the full-state-space
+predicates remain part of the domain contract.

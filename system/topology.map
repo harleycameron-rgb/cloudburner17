@@ -1,0 +1,12 @@
+TOPOLOGY MAP — CONTRACT
+
+State space: X carrying τ(M)
+Admissible action: L_g : X → X
+Topology-and-flow preservation:
+    P_τ(g) = 1 iff L_g preserves τ(M) and its flow structure.
+
+Curvature-preserving actions additionally satisfy:
+    κ(L_g(x)) = κ(x) for every x in τ(M).
+
+This map is a specification; domain-wide preservation is supplied as an
+explicit candidate attestation to the admission API.
