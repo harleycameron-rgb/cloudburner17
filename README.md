@@ -38,3 +38,10 @@ python -B -m src.stabiliser
 python -B -m src.harmony
 python -B -m src.autonomy
 ```
+
+`src.orchestrator.Orchestrator` and `src.agent_interface.AgentInterface`
+compose the supervised agent with optional in-memory benchmark records.
+`src.agent_memory.AgentMemory` is a transient FIFO buffer, and
+`src.agent_validator.AgentValidator` checks sentinel invariance. Benchmark
+records may be provided as mappings, record sequences, or dataframe-like
+objects; no dataframe or numerical library is required.

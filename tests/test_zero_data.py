@@ -10,9 +10,56 @@ from run_supervised_build import create_supervisor, run_pipeline
 from autonomy import self_verify
 from harmony import align_modules, smooth_residue, unify_lambdas
 from stabiliser import harmonise_state, stabilise_step, verify_sentinel
+from agent_interface import AgentInterface
+from agent_memory import AgentMemory
+from agent_validator import AgentValidator
+from engine_manifest import ENGINE_MANIFEST
+from orchestrator import Orchestrator
 
 
 class ZeroDataPipelineTests(unittest.TestCase):
+    def test_orchestrator_and_benchmark_are_in_memory(self):
+        orchestrator = Orchestrator()
+        with self.assertRaisesRegex(RuntimeError, "Benchmark data not loaded"):
+            orchestrator.run_benchmark()
+
+        orchestrator.load_benchmark_data(
+            [{"case": "alpha", "leakage": 0.1}, {"case": "beta", "leakage": 0.25}]
+        )
+        self.assertEqual(
+            orchestrator.run_benchmark()["worst_case_leakage"], 0.25
+        )
+        result = orchestrator.run_full_engine()
+        self.assertEqual(result["agent"]["status"], "complete")
+        self.assertEqual(result["benchmark"]["benchmark"], "complete")
+        self.assertEqual(result["sentinel"], result["agent"]["sentinel"])
+
+    def test_agent_interface_memory_validator_and_manifest(self):
+        interface = AgentInterface()
+        self.assertEqual(interface.initialise(), {"status": "initialised"})
+        interface.load_benchmark([{"leakage": 0.0}])
+        result = interface.run()
+        validator = AgentValidator()
+        self.assertTrue(validator.validate(result["sentinel"]))
+        self.assertTrue(validator.validate(result["sentinel"]))
+
+        memory = AgentMemory()
+        self.assertIsNone(memory.pull())
+        memory.push({"cycle": 1})
+        self.assertEqual(memory.pull(), {"cycle": 1})
+        memory.push("transient")
+        memory.clear()
+        self.assertIsNone(memory.pull())
+
+        self.assertEqual(ENGINE_MANIFEST["mode"], "zero-data")
+        self.assertTrue(ENGINE_MANIFEST["invariants"]["no_persistence"])
+
+    def test_benchmark_rejects_invalid_leakage(self):
+        orchestrator = Orchestrator()
+        orchestrator.load_benchmark_data([{"leakage": float("nan")}])
+        with self.assertRaisesRegex(ValueError, "leakage values"):
+            orchestrator.run_benchmark()
+
     def test_00_package_module_entry_points(self):
         environment = {
             **os.environ,
