@@ -45,6 +45,15 @@ test("tap bridge opens a cycle for passing events", async () => {
   assert.ok(report.timestamp > 0);
 });
 
+test("tap bridge halts a cycle with no events", async () => {
+  const report = await runTapBridgeCycle({
+    pull: async () => [],
+  });
+
+  assert.equal(report.feed, "HALTED");
+  assert.equal(report.bridge.invariantPulse, false);
+});
+
 test("tap sessions reject malformed events and non-array inputs", () => {
   assert.throws(() => runInvariantTapSession("alpha"), TypeError);
   assert.throws(() => runInvariantTapSession([null]), TypeError);

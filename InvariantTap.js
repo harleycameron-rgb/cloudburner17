@@ -25,6 +25,6 @@ export function runInvariantTapSession(events) {
 
   return {
     vector,
-    invariantPulse: vector.every((event) => event.ok),
+    invariantPulse: vector.length > 0 && vector.every((event) => event.ok),
   };
 }
