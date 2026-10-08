@@ -1,4 +1,140 @@
 import { createHash } from "node:crypto";
+import {
+  burnModule as executeBurnModule,
+  markCommitmentBurned,
+  registerCommitment,
+  resolveCommitmentForBurn,
+} from "./burn_logic.js";
+
+/**
+ * @typedef {Object} LifecycleEventShape
+ * @property {string} receiptCommitment
+ * @property {string} originCommitment
+ * @property {"available→burned-origin" | "destination-accepted" | "externally-timestamped"} transition
+ * @property {number} layer
+ * @property {number} timestamp
+ * @property {number} [destinationAccepted]
+ * @property {string} [timestampProof]
+ */
+
+export const LifecycleEventShape = Object.freeze({
+  required: Object.freeze([
+    "receiptCommitment",
+    "originCommitment",
+    "transition",
+    "layer",
+    "timestamp",
+  ]),
+  transitions: Object.freeze([
+    "available→burned-origin",
+    "destination-accepted",
+    "externally-timestamped",
+  ]),
+  optional: Object.freeze(["destinationAccepted", "timestampProof"]),
+});
+
+export class ReceiptLifecycle {
+  constructor(values = {}) {
+    this.receiptCommitment = values.receiptCommitment ?? null;
+    this.originCommitment = values.originCommitment ?? null;
+    this.createdAt = values.createdAt ?? null;
+    this.burnedAt = values.burnedAt ?? null;
+    this.acceptedAt = values.acceptedAt ?? null;
+    this.timestampProof = values.timestampProof ?? null;
+    this.state = values.state ?? "available";
+    this.gateway = values.gateway ?? "untraversed";
+    this.events = Object.freeze([...(values.events ?? [])]);
+    Object.freeze(this);
+  }
+}
+
+function validateLifecycleEvent(event) {
+  if (
+    event === null ||
+    typeof event !== "object" ||
+    typeof event.receiptCommitment !== "string" ||
+    event.receiptCommitment.length === 0 ||
+    typeof event.originCommitment !== "string" ||
+    event.originCommitment.length === 0 ||
+    !LifecycleEventShape.transitions.includes(event.transition) ||
+    !Number.isInteger(event.layer) ||
+    event.layer < 0 ||
+    !Number.isFinite(event.timestamp) ||
+    (event.destinationAccepted !== undefined &&
+      !Number.isFinite(event.destinationAccepted)) ||
+    (event.timestampProof !== undefined &&
+      typeof event.timestampProof !== "string")
+  ) {
+    throw new TypeError("Invalid lifecycle event");
+  }
+}
+
+export function reduceLifecycle(previous, event) {
+  validateLifecycleEvent(event);
+  const lifecycle =
+    previous === null || previous === undefined
+      ? new ReceiptLifecycle()
+      : previous;
+  if (!(lifecycle instanceof ReceiptLifecycle)) {
+    throw new TypeError("Previous lifecycle must be a ReceiptLifecycle");
+  }
+  if (
+    lifecycle.receiptCommitment !== null &&
+    (lifecycle.receiptCommitment !== event.receiptCommitment ||
+      lifecycle.originCommitment !== event.originCommitment)
+  ) {
+    throw new Error("Lifecycle commitment cannot change");
+  }
+  const lastEvent = lifecycle.events.at(-1);
+  if (lastEvent && event.timestamp < lastEvent.timestamp) {
+    throw new Error("Lifecycle events must be timestamp ordered");
+  }
+  if (
+    (event.transition === "available→burned-origin" &&
+      lifecycle.burnedAt !== null) ||
+    (event.transition === "destination-accepted" &&
+      lifecycle.acceptedAt !== null)
+  ) {
+    throw new Error("Lifecycle transition is append-only");
+  }
+
+  const immutableEvent = Object.freeze({
+    receiptCommitment: event.receiptCommitment,
+    originCommitment: event.originCommitment,
+    transition: event.transition,
+    layer: event.layer,
+    timestamp: event.timestamp,
+    ...(event.destinationAccepted === undefined
+      ? {}
+      : { destinationAccepted: event.destinationAccepted }),
+    ...(event.timestampProof === undefined
+      ? {}
+      : { timestampProof: event.timestampProof }),
+  });
+  const values = {
+    receiptCommitment: event.receiptCommitment,
+    originCommitment: event.originCommitment,
+    createdAt: lifecycle.createdAt ?? event.timestamp,
+    burnedAt: lifecycle.burnedAt,
+    acceptedAt: lifecycle.acceptedAt,
+    timestampProof: lifecycle.timestampProof,
+    state: lifecycle.state,
+    gateway: lifecycle.gateway,
+    events: [...lifecycle.events, immutableEvent],
+  };
+  if (event.transition === "available→burned-origin") {
+    values.state = "burned-origin";
+    values.gateway = "traversed";
+    values.burnedAt = event.timestamp;
+  } else if (event.transition === "destination-accepted") {
+    values.state = "destination-accepted";
+    values.acceptedAt = event.destinationAccepted ?? event.timestamp;
+  } else {
+    values.state = "externally-timestamped";
+    values.timestampProof = event.timestampProof ?? null;
+  }
+  return new ReceiptLifecycle(values);
+}
 
 /**
  * @typedef {Object} BurnEvent
@@ -34,13 +170,15 @@ export function admitModule(receiptCommitment, layer) {
     throw new TypeError("Layer must be a non-negative integer");
   }
 
-  return {
+  const module = {
     moduleId: receiptCommitment,
     layer,
     state: "admitted",
     ancestry: [],
     admittedAt: Date.now(),
   };
+  registerCommitment(module);
+  return module;
 }
 
 export function participateInConvergence(module, convergenceVector) {
@@ -93,10 +231,14 @@ export function retireModule(module, dependencies) {
 
   module.state = "retired";
   module.executionRevoked = true;
+  resolveCommitmentForBurn(module.moduleId);
   return module;
 }
 
 export function burnModule(module, chainHead) {
+  if (typeof module === "string") {
+    return executeBurnModule(module);
+  }
   assertModule(module);
   if (module.state !== "retired") {
     throw new Error("Burn requires prior retirement");
@@ -120,6 +262,7 @@ export function burnModule(module, chainHead) {
   module.state = "burned";
   module.origin = originCommitment;
   module.chainHead = newChainHead;
+  markCommitmentBurned(module.moduleId);
 
   return { burnEvent, newChainHead };
 }
