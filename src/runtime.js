@@ -91,7 +91,7 @@ export function proofRhythm(vector) {
 }
 
 export async function CLOUDBURNER17_ORCHESTRATE(source) {
-  const batch = await source.pull();
+  const batch = Array.isArray(source) ? source : await source.pull();
   const ingestion = ingestTestResults(batch);
   const ignition = runtimeIgnition(batch);
   const feed = canFeed(ignition);
