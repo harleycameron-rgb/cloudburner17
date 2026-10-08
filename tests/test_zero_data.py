@@ -48,6 +48,18 @@ class ZeroDataPipelineTests(unittest.TestCase):
         self.assertEqual(state["vector"], [])
 
     def test_test_result_ingestion_and_runtime_integration(self):
+        passing_results = [
+            {"name": "demo", "ok": True},
+            {"name": "event-model", "ok": True},
+        ]
+        passing_state = runtime_ignition(passing_results)
+        self.assertTrue(passing_state["invariant"])
+        self.assertEqual((passing_state["residue"], passing_state["drift"]), (0, 0))
+        self.assertEqual(
+            [(item["name"], item["ok"]) for item in passing_state["vector"]],
+            [("demo", True), ("event-model", True)],
+        )
+
         results = [
             {"name": "demo", "ok": True},
             {"name": "event-model", "ok": False},
