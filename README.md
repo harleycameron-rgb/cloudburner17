@@ -69,7 +69,28 @@ pipeline, test suite, and autonomous-cycle verification.
 The text assets specify contracts and schemas and do not alter runtime
 persistence behavior.
 
+### JavaScript test-result ingestion
+
+`src/ingest.js` exports `ingestTestResults(results)`, and `src/runtime.js`
+exports `runtimeIgnition(results)` as ES modules. Both accept an array of
+records with a string `name` and a boolean `ok`; malformed inputs throw
+`TypeError`. They leave the input unchanged and retain no state between calls.
+
+Ingestion returns `passed`, `failed`, `invariantPulse`, and an ordered `vector`
+of `{ name, ok, timestamp }` records. Timestamps are epoch milliseconds sampled
+once per batch, so they are nondecreasing within that vector. Runtime ignition
+returns the vector, `invariant`, `residue`, `drift`, and a string `status`:
+`IGNITION_READY` when all results pass, otherwise `IGNITION_DRIFT`. Residue and
+drift each equal the number of failures. Empty input has a true invariant and
+zero residue/drift.
+
+This API operates entirely in memory, independently of the Python supervisor;
+it does not install the Python process-wide filesystem guard.
+
 ## Run and verify
+
+Run the JavaScript scenarios with Node.js 18 or newer using `npm test`.
+No dependency installation is required. The Python checks remain:
 
 ```sh
 PYTHONDONTWRITEBYTECODE=1 python -B src/run_supervised_build.py
