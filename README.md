@@ -119,6 +119,9 @@ for SHA-512 hashes of averaged pixel state; and `inspectHashDetails` and
 ID-based burns return `null` until retirement has resolved dependencies and
 revoked execution and capabilities.
 
+See [`docs/BURN_LINEAGE.md`](docs/BURN_LINEAGE.md) for the declared burncycle
+precursor relationship and the Cloudburner17 routing boundary.
+
 ### Agent-side live feed invocation
 
 The root-level `CLOUDBURNER17.js` entry point exports the same orchestrator.
