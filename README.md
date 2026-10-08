@@ -119,6 +119,20 @@ for SHA-512 hashes of averaged pixel state; and `inspectHashDetails` and
 ID-based burns return `null` until retirement has resolved dependencies and
 revoked execution and capabilities.
 
+`runBurnChainHarness(payload, layer = 1)` is an async integration harness exported
+from the root entry point (and `burnChainHarness.js`). It computes a SHA-512
+topology, admits its commitment, records the trajectory, retires the module,
+burns by commitment ID, verifies a stub timestamp proof, and returns
+`{ payload, topology, burnEvent, proof, verification, state }`. Payloads must be
+nonempty strings and layers must be non-negative integers. `snapshot()` returns
+a detached copy of the shared in-memory commitments, burns, and chain head.
+
+The harness uses the same timestamp adapter as `verifyTimestampProof.ts`, via
+`src/timestamp_proof.js`. `"Stub verification passed"` checks only proof fields
+and commitment equality; it is **not** RFC3161 or OpenTimestamps cryptographic
+verification and makes no external request. The root entry point's existing
+`verifyTimestampProof(event)` remains the separate local burn-event check.
+
 ### Agent-side live feed invocation
 
 The root-level `CLOUDBURNER17.js` entry point exports the same orchestrator.

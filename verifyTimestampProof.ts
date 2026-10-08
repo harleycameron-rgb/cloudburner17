@@ -2,6 +2,8 @@
    TIMESTAMP PROOF VERIFICATION — RFC3161 / OpenTimestamps Adapter (Stub)
    ======================================================================== */
 
+import { verifyTimestampProof as verifyStub } from "./src/timestamp_proof.js";
+
 export interface TimestampProof {
   proofId: string;
   commitmentHash: string;
@@ -20,25 +22,5 @@ export function verifyTimestampProof(
   proof: TimestampProof,
   expectedCommitmentHash: string
 ): TimestampVerificationResult {
-  if (!proof.proofId || !proof.commitmentHash || !proof.proofData) {
-    return {
-      valid: false,
-      reason: "Malformed proof object",
-      verifiedAt: Date.now()
-    };
-  }
-
-  if (proof.commitmentHash !== expectedCommitmentHash) {
-    return {
-      valid: false,
-      reason: "Commitment hash mismatch",
-      verifiedAt: Date.now()
-    };
-  }
-
-  return {
-    valid: true,
-    reason: "Stub verification passed",
-    verifiedAt: Date.now()
-  };
+  return verifyStub(proof, expectedCommitmentHash);
 }

@@ -112,3 +112,13 @@ export function verifyTimestampProof(event) {
       timestampProofFor(event.receiptCommitment, event.timestamp)
   );
 }
+
+export function snapshot() {
+  return structuredClone({
+    commitments: [...STATE.commitments.values()].map(
+      (record) => record.commitment,
+    ),
+    burns: STATE.burns,
+    chainHead: STATE.chainHead,
+  });
+}
