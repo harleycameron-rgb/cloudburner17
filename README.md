@@ -125,6 +125,21 @@ the orchestrator only calls `source.pull()` once and processes its batch in
 memory. Source, HTTP, JSON parsing, and payload validation errors reach the
 caller's `.catch()` handler. Importing the entry point does not start a feed.
 
+### Safety continuity
+
+The entry point also exports `safeFeed(source, orchestrate)` and
+`continuityLoop(source, orchestrate)`. Pass `CLOUDBURNER17_ORCHESTRATE` as the
+orchestrator: these helpers pull once per pulse and pass the resulting batch
+directly to it. The orchestrator accepts either a source or an already-pulled
+array, with the same validation and report shape.
+
+Continuity rejects updates less than 150 ms apart, vector-length changes from
+the last accepted state, and nonzero drift. The loop logs each safe pulse,
+waits 150 ms, and stops at the first continuity violation. Continuity state is
+process-wide, shared by all calls; rejected audits after the interval check
+also advance the rate-limit timestamp. Source and orchestration errors
+propagate to the caller.
+
 ## Run and verify
 
 Run the JavaScript scenarios with Node.js 18 or newer using `npm test`.
@@ -140,6 +155,9 @@ PYTHONPATH=src PYTHONDONTWRITEBYTECODE=1 python -B -c \
 The supervised build prints the sentinel. Identical inputs and step order
 produce the same value. See [`docs/zero_data_contract.md`](docs/zero_data_contract.md)
 for the runtime rules.
+
+The `CLOUDBURNER17 Pipeline` GitHub Actions workflow runs the JavaScript tests
+on pushes to `main` with Node.js 20, alongside the existing zero-data workflow.
 
 ## Container deployment
 

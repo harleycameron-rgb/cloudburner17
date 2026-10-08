@@ -297,6 +297,30 @@ test("orchestration closes the feed for empty and failed batches", async () => {
   }
 });
 
+test("orchestration accepts continuity batches directly", async () => {
+  for (const batch of [
+    [{ name: "healthy", ok: true }],
+    [{ name: "failed", ok: false }],
+    [],
+  ]) {
+    const direct = await CLOUDBURNER17_ORCHESTRATE(batch);
+    const fromSource = await CLOUDBURNER17_ORCHESTRATE({
+      pull: async () => batch,
+    });
+
+    assert.equal(direct.feedStatus, fromSource.feedStatus);
+    assert.equal(direct.organismStatus, fromSource.organismStatus);
+    assert.equal(direct.ingestion.passed, fromSource.ingestion.passed);
+    assert.equal(direct.ingestion.failed, fromSource.ingestion.failed);
+    assert.deepEqual(direct.triStream, fromSource.triStream);
+  }
+
+  await assert.rejects(
+    CLOUDBURNER17_ORCHESTRATE([{ name: "invalid", ok: "true" }]),
+    TypeError,
+  );
+});
+
 test("orchestration propagates source errors to the caller", async () => {
   const error = new Error("Runtime feed unavailable");
   await assert.rejects(
