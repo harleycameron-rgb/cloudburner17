@@ -3,9 +3,11 @@ import json
 if __package__:
     from .admission import evaluate_submission
     from .orchestrator import Orchestrator
+    from .waxtablet_bridge import waxtablet_bridge
 else:
     from admission import evaluate_submission
     from orchestrator import Orchestrator
+    from waxtablet_bridge import waxtablet_bridge
 
 
 class WaxtabletAdapter:
@@ -33,6 +35,11 @@ class WaxtabletAdapter:
             return self.orch.run_benchmark()
         if action == "harmonic":
             return self.orch.harmonic_cycle()
+        if action == "bridge":
+            try:
+                return waxtablet_bridge(payload.get("vector"))
+            except (TypeError, ValueError) as error:
+                return {"error": str(error)}
         if action == "admission":
             try:
                 return evaluate_submission(payload.get("submission"))
