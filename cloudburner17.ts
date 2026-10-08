@@ -246,3 +246,9 @@ export function invariantSlotMachine(payload: string, layer: number): any {
 /* ========================================================================
    END OF MONOLITHIC MODULE
    ======================================================================== */
+import { invariantSlotMachine, snapshot } from "./cloudburner17";
+
+// ignition test
+const result = invariantSlotMachine("test‑payload", 1);
+console.log("Result:", result);
+console.log("Snapshot:", snapshot());
