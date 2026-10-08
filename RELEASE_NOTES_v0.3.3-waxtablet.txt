@@ -1,0 +1,10 @@
+CLOUDBURNER17 — Waxtablet Engine Bridge (v0.3.3-waxtablet)
+
+Adds validated Waxtablet feed-vector routing through runtime ignition.
+Passing non-empty vectors open the feed; failed and empty vectors halt it.
+The adapter exposes the bridge through its "bridge" action.
+
+Verification:
+- Waxtablet bridge tests validate active, halted, and malformed vectors.
+- Existing invariantTap panel and JavaScript bridge tests remain available
+  through npm test.

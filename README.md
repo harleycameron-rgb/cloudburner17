@@ -34,8 +34,10 @@ input rows; they do not use global random state.
 - `src/orchestrator.py`, `src/agent_interface.py`: unified engine facade
 - `src/agent_memory.py`, `src/agent_validator.py`: transient FIFO buffer and
   sentinel drift validation
-- `src/waxtablet_adapter.py`: `run`, `benchmark`, and `harmonic` actions with
-  JSON-safe responses
+- `src/waxtablet_adapter.py`: `run`, `benchmark`, `harmonic`, and `bridge`
+  actions with JSON-safe responses
+- `src/waxtablet_bridge.py`: validated feed-vector routing through runtime
+  ignition, with failed and empty vectors halted
 - `src/multi_llm_scheduler.py`: task, LLM-weight, and timing alignment
 - `src/admission.py`: cycle-based topology continuity and live submission checks
 
@@ -63,6 +65,9 @@ The executable admission and torsion APIs are implemented in
 The backend accepts live admission payloads at `POST /admission`; the Waxtablet
 adapter exposes the same check through its `admission` action. Burn diagnostics
 include the adaptive curvature gain.
+The adapter's `bridge` action accepts a `vector` of `{name, ok}` records and
+returns the ignition vector, `invariantPulse`, and an `ACTIVE` or `HALTED` feed
+state. The bridge rejects malformed vectors before routing them.
 The backend also exposes `GET /runtime`, a zero-mutation ignition status
 snapshot. Run `bash ignite.sh` from any directory to execute the supervised
 pipeline, test suite, and autonomous-cycle verification.
