@@ -17,6 +17,8 @@ export {
   trajectoryStream,
 } from "./src/burn_lifecycle.js";
 export { BurnEvent, verifyTimestampProof } from "./src/burn_logic.js";
+export { runBurnChainHarness } from "./burnChainHarness.js";
+export { snapshot } from "./src/burn_logic.js";
 export {
   generateSyntheticStateHash,
   TopologyHash,
