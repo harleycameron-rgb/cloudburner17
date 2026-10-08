@@ -16,11 +16,14 @@ const sha512 = (value) =>
 test("module lifecycle preserves trajectory and commits a burn event", () => {
   const receiptCommitment = sha512("admitted module");
   const module = admitModule(receiptCommitment, 2);
-  const vector = [{ invariant: true, measure: 1 }];
+  const vector = [{ invariant: true, measure: { value: 1 } }];
 
   assert.equal(participateInConvergence(module, vector), "ok");
-  vector[0].measure = 9;
-  assert.equal(trajectoryStream(module)[0].vector[0].measure, 1);
+  vector[0].measure.value = 9;
+  const stream = trajectoryStream(module);
+  assert.equal(stream[0].vector[0].measure.value, 1);
+  stream[0].vector[0].measure.value = 7;
+  assert.equal(trajectoryStream(module)[0].vector[0].measure.value, 1);
 
   assert.throws(
     () => retireModule(module, [sha512("missing dependency")]),

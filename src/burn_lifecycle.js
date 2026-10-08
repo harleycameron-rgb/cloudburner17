@@ -62,7 +62,7 @@ export function participateInConvergence(module, convergenceVector) {
 
   module.ancestry.push({
     commitment: module.moduleId,
-    vector: convergenceVector.map((entry) => ({ ...entry })),
+    vector: structuredClone(convergenceVector),
     time: Date.now(),
   });
 
@@ -142,6 +142,6 @@ export function trajectoryStream(module) {
   return module.ancestry.map((entry) => ({
     commitment: entry.commitment,
     time: entry.time,
-    vector: entry.vector.map((item) => ({ ...item })),
+    vector: structuredClone(entry.vector),
   }));
 }
