@@ -9,10 +9,22 @@ export {
   admitModule,
   burnModule,
   participateInConvergence,
+  reduceLifecycle,
+  ReceiptLifecycle,
+  LifecycleEventShape,
   retireModule,
   revokeToOrigin,
   trajectoryStream,
 } from "./src/burn_lifecycle.js";
+export { BurnEvent, verifyTimestampProof } from "./src/burn_logic.js";
+export {
+  generateSyntheticStateHash,
+  TopologyHash,
+} from "./src/synthetic_state_hash.js";
+export {
+  inspectHashDetails,
+  InspectorObject,
+} from "./src/debugger_inspector.js";
 export {
   invariantTap,
   tapStream,

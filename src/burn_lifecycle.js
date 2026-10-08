@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import {
+  burnModule as executeBurnModule,
   markCommitmentBurned,
   registerCommitment,
   resolveCommitmentForBurn,
@@ -236,7 +237,7 @@ export function retireModule(module, dependencies) {
 
 export function burnModule(module, chainHead) {
   if (typeof module === "string") {
-    return resolveCommitmentForBurn(module);
+    return executeBurnModule(module);
   }
   assertModule(module);
   if (module.state !== "retired") {
