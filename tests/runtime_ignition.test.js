@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { CLOUDBURNER17_ORCHESTRATE } from "../CLOUDBURNER17.js";
 import { ingestTestResults } from "../src/ingest.js";
 import {
   beginFeedCycle,
   canFeed,
-  CLOUDBURNER17_ORCHESTRATE,
   harmoniseTriStream,
   proofRhythm,
   runtimeIgnition,
@@ -292,5 +292,26 @@ test("orchestration closes the feed for empty and failed batches", async () => {
 
     assert.equal(result.feedStatus, "FEED_CLOSED");
     assert.equal(result.organismStatus, "SLEEPING");
+  }
+});
+
+test("orchestration propagates source errors to the caller", async () => {
+  const error = new Error("Runtime feed unavailable");
+  await assert.rejects(
+    CLOUDBURNER17_ORCHESTRATE({
+      pull: async () => {
+        throw error;
+      },
+    }),
+    (caught) => caught === error,
+  );
+});
+
+test("orchestration rejects malformed feed payloads", async () => {
+  for (const batch of [null, {}, [{ name: "invalid", ok: "true" }]]) {
+    await assert.rejects(
+      CLOUDBURNER17_ORCHESTRATE({ pull: async () => batch }),
+      TypeError,
+    );
   }
 });

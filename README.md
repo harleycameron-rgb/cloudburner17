@@ -95,6 +95,36 @@ feed status, all three projections, and the organism status.
 This API operates entirely in memory, independently of the Python supervisor;
 it does not install the Python process-wide filesystem guard.
 
+### Agent-side live feed invocation
+
+The root-level `CLOUDBURNER17.js` entry point exports the same orchestrator.
+From an ES module in the repository root:
+
+```js
+import { CLOUDBURNER17_ORCHESTRATE } from "./CLOUDBURNER17.js";
+
+const source = {
+  async pull() {
+    const response = await fetch("https://your-endpoint/runtime-feed");
+    if (!response.ok) {
+      throw new Error(`Runtime feed HTTP ${response.status}`);
+    }
+    return response.json();
+  },
+};
+
+CLOUDBURNER17_ORCHESTRATE(source)
+  .then(report => console.log(report))
+  .catch(err => console.error("ORCHESTRATION_ERROR", err));
+```
+
+Replace the placeholder URL with your runtime feed endpoint. It must return a
+JSON array of `{ name: string, ok: boolean }` records, not the backend's
+`GET /runtime` status object. The agent-owned source performs the network call;
+the orchestrator only calls `source.pull()` once and processes its batch in
+memory. Source, HTTP, JSON parsing, and payload validation errors reach the
+caller's `.catch()` handler. Importing the entry point does not start a feed.
+
 ## Run and verify
 
 Run the JavaScript scenarios with Node.js 18 or newer using `npm test`.
