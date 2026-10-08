@@ -27,6 +27,7 @@ from admission import (
 from burn_harness import burn_harness
 from multi_llm_scheduler import schedule_tasks
 from runtime import runtime_ignition
+from ingest import ingest_test_results
 
 
 class ZeroDataPipelineTests(unittest.TestCase):
@@ -44,6 +45,37 @@ class ZeroDataPipelineTests(unittest.TestCase):
         )
         self.assertIsInstance(state["timestamp"], int)
         self.assertGreater(state["timestamp"], 0)
+        self.assertEqual(state["vector"], [])
+
+    def test_test_result_ingestion_and_runtime_integration(self):
+        results = [
+            {"name": "demo", "ok": True},
+            {"name": "event-model", "ok": False},
+        ]
+
+        ingested = ingest_test_results(results)
+        self.assertEqual((ingested["passed"], ingested["failed"]), (1, 1))
+        self.assertFalse(ingested["invariant_pulse"])
+        self.assertEqual(
+            [(item["name"], item["ok"]) for item in ingested["vector"]],
+            [("demo", True), ("event-model", False)],
+        )
+        self.assertTrue(all(isinstance(item["timestamp"], int) for item in ingested["vector"]))
+
+        state = runtime_ignition(results)
+        self.assertEqual(state["residue"], 1)
+        self.assertEqual(state["drift"], 1)
+        self.assertFalse(state["invariant"])
+        self.assertEqual(
+            [(item["name"], item["ok"]) for item in state["vector"]],
+            [("demo", True), ("event-model", False)],
+        )
+        self.assertTrue(all(isinstance(item["timestamp"], int) for item in state["vector"]))
+
+    def test_empty_test_results_preserve_invariant(self):
+        ingested = ingest_test_results([])
+        self.assertEqual((ingested["passed"], ingested["failed"]), (0, 0))
+        self.assertTrue(ingested["invariant_pulse"])
 
     def test_multi_llm_admission_contract(self):
         state = {"kappa": 0.0, "rho": 0.0, "kappa_p": 1.0, "kappa_s": 1.0}
