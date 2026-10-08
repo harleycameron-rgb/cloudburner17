@@ -31,6 +31,29 @@ from ingest import ingest_test_results
 
 
 class ZeroDataPipelineTests(unittest.TestCase):
+    def test_00_guard_allows_captured_subprocess(self):
+        code = """import subprocess
+import sys
+from zero_data import assert_no_file_io, install_zero_data_guard
+install_zero_data_guard()
+result = subprocess.run(
+    [sys.executable, "-B", "-c", "print('contained')"],
+    capture_output=True,
+    text=True,
+    check=True,
+)
+assert result.stdout == "contained\\n"
+assert_no_file_io()
+"""
+        result = subprocess.run(
+            [sys.executable, "-B", "-c", code],
+            env={**os.environ, "PYTHONPATH": SRC_DIR, "PYTHONDONTWRITEBYTECODE": "1"},
+            capture_output=True,
+            text=True,
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+
     def test_runtime_ignition_reports_invariant_state(self):
         state = runtime_ignition()
 
