@@ -5,9 +5,11 @@ import { ingestTestResults } from "../src/ingest.js";
 import {
   beginFeedCycle,
   canFeed,
+  continuityLoop,
   harmoniseTriStream,
   proofRhythm,
   runtimeIgnition,
+  safeFeed,
   stabiliseContradiction,
 } from "../src/runtime.js";
 
@@ -313,5 +315,85 @@ test("orchestration rejects malformed feed payloads", async () => {
       CLOUDBURNER17_ORCHESTRATE({ pull: async () => batch }),
       TypeError,
     );
+  }
+});
+
+test("safe feed enforces rate, vector symmetry, and drift continuity", async () => {
+  const realNow = Date.now;
+  let now = 10_000;
+  Date.now = () => now;
+
+  const source = { pull: async () => ["batch"] };
+  const orchestrate = async () => ({
+    organismStatus: "ALIVE",
+    ignition: { vector: [{ name: "one" }, { name: "two" }], drift: 0 },
+  });
+
+  try {
+    assert.equal((await safeFeed(source, orchestrate)).status, "SAFE_UPDATE");
+
+    now += 150;
+    const changedShape = await safeFeed(source, async () => ({
+      ignition: { vector: [{ name: "one" }], drift: 0 },
+    }));
+    assert.equal(changedShape.status, "HALTED");
+
+    now += 150;
+    const drifted = await safeFeed(source, async () => ({
+      ignition: { vector: [{ name: "one" }, { name: "two" }], drift: 1 },
+    }));
+    assert.equal(drifted.status, "HALTED");
+
+    now += 150;
+    assert.equal((await safeFeed(source, orchestrate)).status, "SAFE_UPDATE");
+
+    now += 149;
+    assert.equal((await safeFeed(source, orchestrate)).status, "HALTED");
+  } finally {
+    Date.now = realNow;
+  }
+});
+
+test("continuity loop stops on the first halted feed", async () => {
+  const realNow = Date.now;
+  const realSetTimeout = globalThis.setTimeout;
+  let now = 20_000;
+  let pulls = 0;
+  const messages = [];
+  Date.now = () => now;
+  globalThis.setTimeout = (callback) => {
+    now += 150;
+    callback();
+    return 0;
+  };
+  const realLog = console.log;
+  console.log = (...args) => messages.push(args);
+
+  try {
+    await continuityLoop(
+      {
+        pull: async () => {
+          pulls += 1;
+          return [];
+        },
+      },
+      async () => ({
+        organismStatus: "ALIVE",
+        ignition: {
+          vector: [{ name: "one" }, { name: "two" }],
+          drift: pulls === 1 ? 0 : 1,
+        },
+      }),
+    );
+
+    assert.equal(pulls, 2);
+    assert.deepEqual(messages, [
+      ["SAFE PULSE:", "ALIVE"],
+      ["SAFETY HALT:", "Continuity violation detected"],
+    ]);
+  } finally {
+    Date.now = realNow;
+    globalThis.setTimeout = realSetTimeout;
+    console.log = realLog;
   }
 });

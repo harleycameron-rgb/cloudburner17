@@ -1,1 +1,5 @@
-export { CLOUDBURNER17_ORCHESTRATE } from "./src/runtime.js";
+export {
+  CLOUDBURNER17_ORCHESTRATE,
+  continuityLoop,
+  safeFeed,
+} from "./src/runtime.js";
