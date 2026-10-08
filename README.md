@@ -111,6 +111,14 @@ SHA-512-linked event and new chain head. Revocation exposes the preserved origin
 while trajectory reads return copies so callers cannot mutate the recorded
 ancestry through the stream.
 
+The root entry point also exports `reduceLifecycle`, `ReceiptLifecycle`, and
+`LifecycleEventShape` for immutable event reduction; `verifyTimestampProof` and
+`BurnEvent` for ID-based burns; `generateSyntheticStateHash` and `TopologyHash`
+for SHA-512 hashes of averaged pixel state; and `inspectHashDetails` and
+`InspectorObject` for mapping hash, pixel, trajectory, and lifecycle details.
+ID-based burns return `null` until retirement has resolved dependencies and
+revoked execution and capabilities.
+
 ### Agent-side live feed invocation
 
 The root-level `CLOUDBURNER17.js` entry point exports the same orchestrator.
