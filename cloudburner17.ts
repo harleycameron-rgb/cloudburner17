@@ -1,4 +1,161 @@
 /* ========================================================================
+   CLOUD BURNER 17 — TRAJECTORY GEOMETRY ENGINE (DAEMONGATE + STACK + Q)
+   Dimensional Curvature • Parabolic Potential • Pixel-Stack Accumulator
+   Synthetic Washburn Hash • Zero-Data q-Trajectory • Curvature Reconciliation
+   © 2026 Harley Cameron — All Rights Reserved
+   ======================================================================== */
+
+import { createHash } from "crypto";
+
+/* ========================================================================
+   CORE GEOMETRY TYPES
+   ======================================================================== */
+
+type Pixel = {
+  curvature: number;          // dimensional curvature state
+  potential: number;          // parabolic potential
+  tension: number;            // invariant tension
+  timestamp: number;          // firing moment
+};
+
+type PixelStack = Pixel[];
+
+type QTrajectory = {
+  q: number;                  // zero-data trajectory vector
+  timestamp: number;
+  washburn: boolean;          // true if synthetic event
+};
+
+type TopologyHash = {
+  hash: string;               // encrypted or synthetic
+  synthetic: boolean;         // true for Washburn events
+  qTrajectory: QTrajectory;   // zero-data traversal vector
+};
+
+/* ========================================================================
+   GLOBAL GEOMETRY STATE
+   ======================================================================== */
+
+const PIXEL_STACK: PixelStack = [];
+
+/* ========================================================================
+   UTILITY — SHA-512
+   ======================================================================== */
+
+function sha512(input: string): string {
+  return createHash("sha512").update(input).digest("hex");
+}
+
+/* ========================================================================
+   DAEMONGATE — Dimensional Topology Iterator
+   ======================================================================== */
+
+export function daemongateIterate(payload: string): Pixel {
+  const curvature = Math.random();          // dimensional curvature shift
+  const potential = Math.random();          // parabolic potential modulation
+  const tension = Math.random();            // invariant tension state
+
+  const pixel: Pixel = {
+    curvature,
+    potential,
+    tension,
+    timestamp: Date.now()
+  };
+
+  PIXEL_STACK.push(pixel);
+  return pixel;
+}
+
+/* ========================================================================
+   TOPOLOGY HASH GENERATOR — Curvature Encoding
+   ======================================================================== */
+
+export function generateTopologyHash(pixel: Pixel, payload: string): TopologyHash {
+  const combined =
+    pixel.curvature.toString() +
+    pixel.potential.toString() +
+    pixel.tension.toString() +
+    payload +
+    Date.now().toString();
+
+  const hash = sha512(combined);
+
+  const qTrajectory: QTrajectory = {
+    q: 0,                     // true topology hashes carry no q-shadow
+    timestamp: Date.now(),
+    washburn: false
+  };
+
+  return {
+    hash,
+    synthetic: false,
+    qTrajectory
+  };
+}
+
+/* ========================================================================
+   WASHBURN SYNTHETIC HASH — Digit-Plane Averaging
+   ======================================================================== */
+
+export function generateWashburnHash(hashAbove: string, hashBelow: string): TopologyHash {
+  const digitsA = hashAbove.split("").map(c => c.charCodeAt(0));
+  const digitsB = hashBelow.split("").map(c => c.charCodeAt(0));
+
+  const averagedDigits = digitsA.map((d, i) => {
+    const b = digitsB[i] || d;
+    return Math.floor((d + b) / 2);
+  });
+
+  const syntheticHash = averagedDigits
+    .map(n => String.fromCharCode(n))
+    .join("");
+
+  const qTrajectory: QTrajectory = {
+    q: Math.random(),         // zero-data trajectory shadow
+    timestamp: Date.now(),
+    washburn: true
+  };
+
+  return {
+    hash: syntheticHash,
+    synthetic: true,
+    qTrajectory
+  };
+}
+
+/* ========================================================================
+   CURVATURE RECONCILIATION — Same Stack, New Hash
+   ======================================================================== */
+
+export function reconcileCurvature(hashAbove: string, hashBelow: string): TopologyHash {
+  // Washburn sits between two valid topology hashes
+  return generateWashburnHash(hashAbove, hashBelow);
+}
+
+/* ========================================================================
+   TRAJECTORY ENGINE — Full Daemongate → Hash → Reconciliation
+   ======================================================================== */
+
+export function computeTrajectory(payload: string, previousHash: string | null): TopologyHash {
+  // 1. Fire daemongate (pixel-stack accumulation)
+  const pixel = daemongateIterate(payload);
+
+  // 2. Generate encrypted topology hash
+  const topoHash = generateTopologyHash(pixel, payload);
+
+  // 3. If previousHash exists, reconcile curvature
+  if (previousHash) {
+    const reconciled = reconcileCurvature(previousHash, topoHash.hash);
+    return reconciled.synthetic ? reconciled : topoHash;
+  }
+
+  return topoHash;
+}
+
+/* ========================================================================
+   END OF TRAJECTORY GEOMETRY ENGINE
+   ======================================================================== */
+/* ========================================================================
    CLOUD BURNER 17 — INVARIANT SLOT MACHINE MODULE (MONOLITHIC BUILD)
    Testing-Leg Runtime + Research-Leg Analytics
    © 2026 Harley Cameron — All Rights Reserved
