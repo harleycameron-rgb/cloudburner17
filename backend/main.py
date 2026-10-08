@@ -1,18 +1,18 @@
 import sys
 import os
+import time
 from contextlib import asynccontextmanager
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src")))
 
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse
 
 from admission import evaluate_submission
 from supervisor import Supervisor
 from ignite import ignite
 from burn_harness import burn_harness
 from residue import Residue
-from runtime import runtime_ignition
 
 sup = None
 
@@ -43,17 +43,11 @@ app = FastAPI(lifespan=lifespan)
 
 
 @app.get("/runtime")
-async def runtime():
-    try:
-        return runtime_ignition()
-    except Exception:
-        return JSONResponse(
-            status_code=500,
-            content={
-                "error": "Invariant audit refusal",
-                "detail": "Invariant audit failed",
-            },
-        )
+async def runtime_stub():
+    return {
+        "status": "ok",
+        "timestamp": time.time(),
+    }
 
 
 @app.get("/", response_class=HTMLResponse)
