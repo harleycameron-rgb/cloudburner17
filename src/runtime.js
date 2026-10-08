@@ -1,7 +1,7 @@
 import { ingestTestResults } from "./ingest.js";
 
 export function runtimeIgnition(results) {
-  const { failed, invariantPulse, vector } = ingestTestResults(results);
+  const { failed, vector } = ingestTestResults(results);
   const invariant = failed === 0;
 
   return {
