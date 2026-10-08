@@ -1,7 +1,15 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { ingestTestResults } from "../src/ingest.js";
-import { runtimeIgnition } from "../src/runtime.js";
+import {
+  beginFeedCycle,
+  canFeed,
+  CLOUDBURNER17_ORCHESTRATE,
+  harmoniseTriStream,
+  proofRhythm,
+  runtimeIgnition,
+  stabiliseContradiction,
+} from "../src/runtime.js";
 
 test("ingests basic test results", () => {
   const out = ingestTestResults([
@@ -24,7 +32,7 @@ test("runtime ignition preserves invariant when all tests pass", () => {
   assert.equal(out.invariant, true);
   assert.equal(out.residue, 0);
   assert.equal(out.drift, 0);
-  assert.equal(out.status, "IGNITION_READY");
+  assert.equal(out.status, "IGNITION_STABLE");
 });
 
 test("runtime ignition detects drift when tests fail", () => {
@@ -36,7 +44,7 @@ test("runtime ignition detects drift when tests fail", () => {
   assert.equal(out.invariant, false);
   assert.equal(out.residue, 1);
   assert.equal(out.drift, 1);
-  assert.equal(out.status, "IGNITION_DRIFT");
+  assert.equal(out.status, "IGNITION_VARIANT");
 });
 
 test("truth-vector shape is correct for tri-stream harmonisation", () => {
@@ -125,7 +133,7 @@ test("empty input has no failures or drift", () => {
     vector: [],
   });
   assert.deepEqual(runtimeIgnition([]), {
-    status: "IGNITION_READY",
+    status: "IGNITION_STABLE",
     invariant: true,
     residue: 0,
     drift: 0,
@@ -191,5 +199,98 @@ test("malformed inputs are rejected rather than producing a false invariant", ()
   for (const results of invalid) {
     assert.throws(() => ingestTestResults(results), TypeError);
     assert.throws(() => runtimeIgnition(results), TypeError);
+  }
+});
+
+test("feed gate requires a non-empty stable ignition", () => {
+  assert.equal(canFeed(runtimeIgnition([{ name: "healthy", ok: true }])), true);
+  assert.equal(canFeed(runtimeIgnition([])), false);
+  assert.equal(canFeed(runtimeIgnition([{ name: "failed", ok: false }])), false);
+});
+
+test("feed cycle activates stable batches and halts on drift", async () => {
+  const active = await beginFeedCycle({
+    pull: async () => [{ name: "healthy", ok: true }],
+  });
+  const halted = await beginFeedCycle({
+    pull: async () => [{ name: "failed", ok: false }],
+  });
+
+  assert.equal(active.feed, "ACTIVE");
+  assert.equal(active.invariant, true);
+  assert.equal(active.truthVector.length, 1);
+  assert.ok(active.timestamp > 0);
+  assert.equal(halted.feed, "HALTED");
+  assert.equal(halted.reason, "Invariant not stable");
+  assert.equal(halted.ignition.residue, 1);
+});
+
+test("tri-stream and contradiction projections preserve source order", () => {
+  const vector = [
+    { name: "first", ok: true, timestamp: 1 },
+    { name: "second", ok: false, timestamp: 2 },
+  ];
+
+  assert.deepEqual(harmoniseTriStream(vector), {
+    publicStudy: [
+      { name: "first", ok: true, pulse: "PUBLIC" },
+      { name: "second", ok: false, pulse: "PUBLIC" },
+    ],
+    philosophicalReset: [
+      { name: "first", ok: true, pulse: "PHILOSOPHICAL" },
+      { name: "second", ok: false, pulse: "PHILOSOPHICAL" },
+    ],
+    businessProcedure: [
+      { name: "first", ok: true, pulse: "BUSINESS" },
+      { name: "second", ok: false, pulse: "BUSINESS" },
+    ],
+  });
+  assert.deepEqual(stabiliseContradiction(vector), {
+    contradictions: 1,
+    stabilised: "TENSION_HELD",
+    field: vector,
+  });
+});
+
+test("proof rhythm marks origin and continuum without mutating input", () => {
+  const vector = [
+    { name: "first", ok: true, timestamp: 1 },
+    { name: "second", ok: true, timestamp: 2 },
+  ];
+
+  assert.deepEqual(proofRhythm(vector), [
+    { ...vector[0], rhythmIndex: 0, topology: "ORIGIN" },
+    { ...vector[1], rhythmIndex: 1, topology: "CONTINUUM" },
+  ]);
+  assert.deepEqual(vector[0], { name: "first", ok: true, timestamp: 1 });
+});
+
+test("orchestration pulls once and exposes the complete runtime sequence", async () => {
+  let pulls = 0;
+  const result = await CLOUDBURNER17_ORCHESTRATE({
+    pull: async () => {
+      pulls += 1;
+      return [{ name: "healthy", ok: true }];
+    },
+  });
+
+  assert.equal(pulls, 1);
+  assert.equal(result.ingestion.passed, 1);
+  assert.equal(result.ignition.status, "IGNITION_STABLE");
+  assert.equal(result.feedStatus, "FEED_OPEN");
+  assert.equal(result.triStream.publicStudy[0].pulse, "PUBLIC");
+  assert.equal(result.contradictionField.stabilised, "NO_TENSION");
+  assert.equal(result.proofRhythm[0].topology, "ORIGIN");
+  assert.equal(result.organismStatus, "ALIVE");
+});
+
+test("orchestration closes the feed for empty and failed batches", async () => {
+  for (const batch of [[], [{ name: "failed", ok: false }]]) {
+    const result = await CLOUDBURNER17_ORCHESTRATE({
+      pull: async () => batch,
+    });
+
+    assert.equal(result.feedStatus, "FEED_CLOSED");
+    assert.equal(result.organismStatus, "SLEEPING");
   }
 });
