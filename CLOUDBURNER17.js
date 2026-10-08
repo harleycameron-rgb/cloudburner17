@@ -6,6 +6,14 @@ export {
 export { runtimeIgnition } from "./src/runtime.js";
 export { ingestTestResults } from "./src/ingest.js";
 export {
+  admitModule,
+  burnModule,
+  participateInConvergence,
+  retireModule,
+  revokeToOrigin,
+  trajectoryStream,
+} from "./src/burn_lifecycle.js";
+export {
   invariantTap,
   tapStream,
   runInvariantTapSession,
