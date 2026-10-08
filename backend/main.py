@@ -46,12 +46,12 @@ app = FastAPI(lifespan=lifespan)
 async def runtime():
     try:
         return runtime_ignition()
-    except Exception as error:
+    except Exception:
         return JSONResponse(
             status_code=500,
             content={
                 "error": "Invariant audit refusal",
-                "detail": str(error),
+                "detail": "Invariant audit failed",
             },
         )
 
