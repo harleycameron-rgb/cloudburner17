@@ -26,9 +26,25 @@ from admission import (
 )
 from burn_harness import burn_harness
 from multi_llm_scheduler import schedule_tasks
+from runtime import runtime_ignition
 
 
 class ZeroDataPipelineTests(unittest.TestCase):
+    def test_runtime_ignition_reports_invariant_state(self):
+        state = runtime_ignition()
+
+        self.assertEqual(
+            {key: state[key] for key in ("status", "residue", "drift", "invariant")},
+            {
+                "status": "IGNITION_READY",
+                "residue": 0,
+                "drift": 0,
+                "invariant": True,
+            },
+        )
+        self.assertIsInstance(state["timestamp"], int)
+        self.assertGreater(state["timestamp"], 0)
+
     def test_multi_llm_admission_contract(self):
         state = {"kappa": 0.0, "rho": 0.0, "kappa_p": 1.0, "kappa_s": 1.0}
         candidate = AdmissionCandidate(

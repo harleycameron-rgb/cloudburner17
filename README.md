@@ -63,6 +63,9 @@ The executable admission and torsion APIs are implemented in
 The backend accepts live admission payloads at `POST /admission`; the Waxtablet
 adapter exposes the same check through its `admission` action. Burn diagnostics
 include the adaptive curvature gain.
+The backend also exposes `GET /runtime`, a zero-mutation ignition status
+snapshot. Run `bash ignite.sh` from any directory to execute the supervised
+pipeline, test suite, and autonomous-cycle verification.
 The text assets specify contracts and schemas and do not alter runtime
 persistence behavior.
 
