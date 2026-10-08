@@ -100,6 +100,17 @@ feed status, all three projections, and the organism status.
 This API operates entirely in memory, independently of the Python supervisor;
 it does not install the Python process-wide filesystem guard.
 
+### JavaScript burn-event lifecycle
+
+The root entry point exports `admitModule`, `participateInConvergence`,
+`retireModule`, `burnModule`, `revokeToOrigin`, and `trajectoryStream`.
+Admission creates an in-memory module record; convergence records a copied
+trajectory vector; retirement requires all dependencies in its ancestry and
+revokes execution. Burning is allowed only after retirement and returns a
+SHA-512-linked event and new chain head. Revocation exposes the preserved origin,
+while trajectory reads return copies so callers cannot mutate the recorded
+ancestry through the stream.
+
 ### Agent-side live feed invocation
 
 The root-level `CLOUDBURNER17.js` entry point exports the same orchestrator.
