@@ -1,0 +1,83 @@
+{
+  "schema": "invariant-whole-topology/1",
+  "centres": [
+    "harleycameron-rgb/cloudburner17",
+    "harleycameron-rgb/CLOUDBEAST_burnharness"
+  ],
+  "nodes": [
+    {
+      "id": "harleycameron-rgb/Burnharness-Organism-",
+      "role": "organism-specification",
+      "source_commit": "e0d5895996a3a3f82fd629d5ac588bc25918fbd2",
+      "modules": [
+        {"id": "design-specification", "path": "README.md", "git_blob_sha1": "48e2fe2564198847390c135eba1a56a010bf58a8"}
+      ]
+    },
+    {
+      "id": "harleycameron-rgb/CLOUDBEAST_burnharness",
+      "role": "central-coupler",
+      "source_commit": "c781b018a0f8bac1ed97a1f9ab0ee0b269395b3c",
+      "modules": [
+        {"id": "repository-manifest", "path": "repo_manifest.py", "git_blob_sha1": "8d56cb62adefbc11c4ad3d0bb0dcc174c2a55ee0"},
+        {"id": "sentinel-coordinator", "path": "coordinator.py", "git_blob_sha1": "2cb6a9dfd2a40bb5c66771c4d4916e5cdc55595e"},
+        {"id": "coupler-runtime", "path": "couplers/organism_runtime.py", "git_blob_sha1": "9e9dd5951831181f65cd84d28eeccb39c499732b"},
+        {"id": "readiness", "path": "system_validation.py", "git_blob_sha1": "f70cc70197e900d1d532cf6add33a12d74b50f88"},
+        {"id": "sentinel-link", "path": "sentinel_link/adapter.py", "git_blob_sha1": "f00bcc94098af404c99d857442d4a6875eaacb17"}
+      ]
+    },
+    {
+      "id": "harleycameron-rgb/cloudburner17",
+      "role": "central-runtime",
+      "source_commit": "41c89c979fef31ba34a7e81dec5e644dfe323089",
+      "modules": [
+        {"id": "admission", "path": "src/admission.py", "git_blob_sha1": "745648dcaaf17a6e4cc1c64d5093238854af5651"},
+        {"id": "orchestration", "path": "src/runtime.js", "git_blob_sha1": "0a4b141c295691a542390a2a8ca59d907e1c352d"},
+        {"id": "burn-lifecycle", "path": "src/burn_lifecycle.js", "git_blob_sha1": "56e60a2c5c3bfa8eab3ed041d62c22b7f7323846"},
+        {"id": "timestamp-adapter", "path": "src/timestamp_proof.js", "git_blob_sha1": "3deb49e259892b08d15e394c993ede79e7e40c50"},
+        {"id": "engine-entry", "path": "CLOUDBURNER17.js", "git_blob_sha1": "8e6a6c342f24dff38ab65eec26b69ca9be7694c2"}
+      ]
+    },
+    {
+      "id": "harleycameron-rgb/invariantgatewriter",
+      "role": "qualified-gate",
+      "source_commit": "d465651f70ed65111a4c75c6b64209d899f5816a",
+      "modules": [
+        {"id": "qualification", "path": "invariantgatewriter/qualification.py", "git_blob_sha1": "34291011e1d86adb23271bce6c50b75a7cdb54b2"},
+        {"id": "gate-writer", "path": "invariantgatewriter/writer.py", "git_blob_sha1": "b9326f67290b520c055d346bf2d4c950e94ff526"},
+        {"id": "module-topology", "path": "invariantgatewriter/topology.py", "git_blob_sha1": "d86ac7cd38da92f80f97bf9b7cfa923720659239"},
+        {"id": "public-test-node", "path": "invariantgatewriter/public_node.py", "git_blob_sha1": "f36d21de930eb7f5a5e8f9007d8c7f4b7c17b1df"}
+      ]
+    },
+    {
+      "id": "harleycameron-rgb/invarianttap.app",
+      "role": "public-signal-surface",
+      "source_commit": "f3a3f39134c05c01c836ad228eef031e855d3303",
+      "modules": [
+        {"id": "instrument", "path": "index.html", "git_blob_sha1": "0ddf1b16c65c2ab8fd1aea044d39089b1efa6104"},
+        {"id": "sentinel-chain", "path": "sentinel_dot.js", "git_blob_sha1": "138f0ce5a26747a8c7f080f18690ff7d32c711c9"},
+        {"id": "origin", "path": "origin.py", "git_blob_sha1": "3cfdfbf65001984b276e52873e28e340e35af943"}
+      ]
+    }
+  ],
+  "edges": [
+    {"from": "harleycameron-rgb/invarianttap.app", "to": "harleycameron-rgb/cloudburner17", "port": "derived-signal-to-runtime", "status": "declared"},
+    {"from": "harleycameron-rgb/cloudburner17", "to": "harleycameron-rgb/CLOUDBEAST_burnharness", "port": "runtime-evidence-to-couplers", "status": "declared"},
+    {"from": "harleycameron-rgb/CLOUDBEAST_burnharness", "to": "harleycameron-rgb/cloudburner17", "port": "readiness-to-admission", "status": "declared"},
+    {"from": "harleycameron-rgb/cloudburner17", "to": "harleycameron-rgb/invariantgatewriter", "port": "candidate-to-qualification-boundary", "status": "declared"},
+    {"from": "harleycameron-rgb/invariantgatewriter", "to": "harleycameron-rgb/invarianttap.app", "port": "backend-confirmed-receipt", "status": "declared"},
+    {"from": "harleycameron-rgb/Burnharness-Organism-", "to": "harleycameron-rgb/CLOUDBEAST_burnharness", "port": "organism-design-reference", "status": "declared"}
+  ],
+  "boundaries": {
+    "topology": "structural declaration; not a runtime connector or qualification",
+    "origin": "unsigned topology commitment; no confirmed Bitcoin anchor",
+    "timestamp": "cloudburner17 timestamp adapter is a stub",
+    "gate": "live admission still requires trusted signed qualification",
+    "privacy": "map contains repository/module metadata only; no sample or user data",
+    "coverage": "five repositories visible to this GitHub connection; other repositories unresolved"
+  },
+  "unresolved": [
+    {"id": "sentinel_dot", "reason": "referenced by source repositories; standalone repository not inspected"},
+    {"id": "MDL-residue-test", "reason": "origin archive not inspected in this update"},
+    {"id": "invariantENG.V.1.0.", "reason": "repository returned 404 through this connection"}
+  ]
+}

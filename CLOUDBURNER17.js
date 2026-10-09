@@ -47,3 +47,16 @@ export {
   safetyLight,
   instrumentPanelSnapshot,
 } from "./InvariantTapPanel.js";
+export {
+  SHARED_ORIGIN,
+  SphericalBurnHarness,
+  sphericalGeometry,
+  radialPlacement,
+  verifySphericalEnvelope,
+} from "./src/spherical_topology.js";
+export { runSphericalBurnHarness } from "./burn-harness-spherical.js";
+export {
+  SphereShiftGate,
+  verifySphereShifts,
+  gateSymbolSVG,
+} from "./src/sphere_shift_gate.js";
