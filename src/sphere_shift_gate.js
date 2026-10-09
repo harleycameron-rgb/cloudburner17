@@ -4,17 +4,6 @@ import {
 } from "./spherical_topology.js";
 
 const copy = value => structuredClone(value);
-<<<<<<< HEAD
-const canonical = value => {
-  if (Array.isArray(value)) return "["+value.map(canonical).join(",")+"]";
-  if (value && typeof value === "object")
-    return "{"+Object.keys(value).sort().map(k => JSON.stringify(k)+":"+canonical(value[k])).join(",")+"}";
-  if (typeof value === "number" && !Number.isFinite(value)) throw new TypeError("Nonfinite value");
-  if (value === undefined) throw new TypeError("Undefined value");
-  return JSON.stringify(value);
-};
-const hash = value => createHash("sha512").update(canonical(value)).digest("hex");
-=======
 
 const canonical = value => {
   if (Array.isArray(value)) return "["+value.map(canonical).join(",")+"]";
@@ -31,40 +20,21 @@ const canonical = value => {
 
 const hash = value =>
   createHash("sha512").update(canonical(value)).digest("hex");
->>>>>>> origin/main
 const HEX = /^[0-9a-f]{128}$/;
 
 function project(snapshot, geometry) {
   return snapshot.events.map(event => ({
-<<<<<<< HEAD
-    id: event.id, sourceEnvelope: event.envelopeHash,
-    topologyHash: event.topologyHash,
-    placement: radialPlacement(geometry, event.topologyHash, event.lifecycle.layer),
-=======
     id: event.id,
     sourceEnvelope: event.envelopeHash,
     topologyHash: event.topologyHash,
     placement: radialPlacement(
       geometry, event.topologyHash, event.lifecycle.layer,
     ),
->>>>>>> origin/main
   }));
 }
 
 function pairFor(segment, surface) {
   const segmentHash = hash(segment);
-<<<<<<< HEAD
-  return [
-    { schema: "sphere-shift-firing/1", kind: "surface-projection",
-      segmentHash, geometryHash: hash(segment.toGeometry), projectionHash: hash(surface) },
-    { schema: "sphere-shift-firing/1", kind: "linear-checkpoint",
-      segmentHash, sourceHead: segment.sourceHead, sourceGenesis: segment.sourceGenesis,
-      timestampState: "not-submitted", bitcoinAnchor: null },
-  ];
-}
-
-/** Atomic means one synchronous in-memory pair, not an atomic/quantum experiment. */
-=======
 
   return [
     {
@@ -87,7 +57,6 @@ function pairFor(segment, surface) {
 }
 
 /** Atomic means a synchronous memory commit, not a physical experiment. */
->>>>>>> origin/main
 export class SphereShiftGate {
   #source;
   #geometry;
@@ -95,15 +64,6 @@ export class SphereShiftGate {
   #events = [];
 
   constructor(sourceSnapshot, trustedSourceHead) {
-<<<<<<< HEAD
-    if (!verifySphericalEnvelope(sourceSnapshot, trustedSourceHead))
-      throw new Error("Verified source envelope and independently trusted head required");
-    this.#source = copy(sourceSnapshot);
-    this.#geometry = copy(sourceSnapshot.sphere);
-    this.#head = hash({
-      schema: "sphere-shift-genesis/1", sourceHead: trustedSourceHead,
-      sourceGenesis: sourceSnapshot.genesis, geometry: this.#geometry,
-=======
     if (!verifySphericalEnvelope(sourceSnapshot, trustedSourceHead)) {
       throw new Error(
         "Verified source envelope and independently trusted head required",
@@ -117,46 +77,11 @@ export class SphereShiftGate {
       sourceHead: trustedSourceHead,
       sourceGenesis: sourceSnapshot.genesis,
       geometry: this.#geometry,
->>>>>>> origin/main
     });
   }
 
   shift(segmentId, twistRadians) {
     if (typeof segmentId !== "string" || !segmentId.length ||
-<<<<<<< HEAD
-        !Number.isFinite(twistRadians)) throw new TypeError("Invalid shift segment");
-    const retry = this.#events.find(e => e.segment.id === segmentId);
-    if (retry) {
-      if (retry.segment.twistRadians !== twistRadians)
-        throw new Error("Changed shift retry rejected");
-      return copy(retry);
-    }
-    if (!this.#source.events.length) throw new Error("No burned trajectory to project");
-    const toGeometry = sphericalGeometry({
-      origin: this.#geometry.origin, axis: this.#geometry.axis,
-      tilt: this.#geometry.tilt+twistRadians,
-      radius: this.#geometry.radius, layerSpacing: this.#geometry.layerSpacing,
-    });
-    const surface = project(this.#source, toGeometry);
-    const segment = {
-      schema: "sphere-shift-segment/1", id: segmentId, sequence: this.#events.length,
-      previousShift: this.#head, sourceHead: this.#source.head,
-      sourceGenesis: this.#source.genesis, fromGeometry: copy(this.#geometry),
-      toGeometry, twistRadians,
-    };
-    const pair = pairFor(segment, surface);
-    const event = {
-      schema: "sphere-dual-shift/1", segment, pair, surface,
-      atomicity: "single-synchronous-memory-commit",
-      gateSymbol: "dual-fired-unanchored",
-      atomicGas: { geometry: "separate-conceptual-origin", evidence: "unverified" },
-    };
-    event.eventHash = hash(event);
-    // Nothing changes until geometry, projection, both firings and hash are ready.
-    this.#events.push(event);
-    this.#geometry = toGeometry;
-    this.#head = event.eventHash;
-=======
         !Number.isFinite(twistRadians)) {
       throw new TypeError("Invalid shift segment");
     }
@@ -215,18 +140,11 @@ export class SphereShiftGate {
     this.#geometry = toGeometry;
     this.#head = event.eventHash;
 
->>>>>>> origin/main
     return copy(event);
   }
 
   snapshot() {
     return copy({
-<<<<<<< HEAD
-      schema: "sphere-shift-history/1", source: this.#source,
-      geometry: this.#geometry, events: this.#events, head: this.#head,
-      gateSymbol: this.#events.length ? "dual-fired-unanchored" : "sphere-ready",
-      signature: null, bitcoinAnchor: null,
-=======
       schema: "sphere-shift-history/1",
       source: this.#source,
       geometry: this.#geometry,
@@ -236,39 +154,10 @@ export class SphereShiftGate {
         ? "dual-fired-unanchored" : "sphere-ready",
       signature: null,
       bitcoinAnchor: null,
->>>>>>> origin/main
     });
   }
 }
 
-<<<<<<< HEAD
-export function verifySphereShifts(history, trustedSourceHead, expectedShiftHead) {
-  try {
-    if (history.schema !== "sphere-shift-history/1" ||
-        !HEX.test(expectedShiftHead) || history.signature !== null ||
-        history.bitcoinAnchor !== null || !Array.isArray(history.events) ||
-        !verifySphericalEnvelope(history.source, trustedSourceHead)) return false;
-    let geometry = history.source.sphere;
-    let head = hash({
-      schema: "sphere-shift-genesis/1", sourceHead: trustedSourceHead,
-      sourceGenesis: history.source.genesis, geometry,
-    });
-    const ids = new Set();
-    for (const [sequence, event] of history.events.entries()) {
-      const { eventHash, ...body } = event;
-      const s = event.segment;
-      const target = sphericalGeometry({
-        origin: geometry.origin, axis: geometry.axis,
-        tilt: geometry.tilt+s.twistRadians,
-        radius: geometry.radius, layerSpacing: geometry.layerSpacing,
-      });
-      const surface = project(history.source, target);
-      if (event.schema !== "sphere-dual-shift/1" ||
-          s.schema !== "sphere-shift-segment/1" ||
-          typeof s.id !== "string" || !s.id.length || ids.has(s.id) ||
-          !Number.isFinite(s.twistRadians) || s.sequence !== sequence ||
-          s.previousShift !== head || s.sourceHead !== trustedSourceHead ||
-=======
 export function verifySphereShifts(
   history, trustedSourceHead, expectedShiftHead,
 ) {
@@ -277,6 +166,7 @@ export function verifySphereShifts(
         !HEX.test(expectedShiftHead) ||
         history.signature !== null ||
         history.bitcoinAnchor !== null ||
+        !Array.isArray(history.events) ||
         !verifySphericalEnvelope(history.source, trustedSourceHead)) {
       return false;
     }
@@ -288,7 +178,6 @@ export function verifySphereShifts(
       sourceGenesis: history.source.genesis,
       geometry,
     });
-
     const ids = new Set();
 
     for (const [sequence, event] of history.events.entries()) {
@@ -311,7 +200,6 @@ export function verifySphereShifts(
           s.sequence !== sequence ||
           s.previousShift !== head ||
           s.sourceHead !== trustedSourceHead ||
->>>>>>> origin/main
           s.sourceGenesis !== history.source.genesis ||
           canonical(s.fromGeometry) !== canonical(geometry) ||
           canonical(s.toGeometry) !== canonical(target) ||
@@ -320,15 +208,6 @@ export function verifySphereShifts(
           event.atomicity !== "single-synchronous-memory-commit" ||
           event.gateSymbol !== "dual-fired-unanchored" ||
           canonical(event.atomicGas) !== canonical({
-<<<<<<< HEAD
-            geometry: "separate-conceptual-origin", evidence: "unverified",
-          }) || hash(body) !== eventHash) return false;
-      ids.add(s.id); geometry = target; head = eventHash;
-    }
-    return head === expectedShiftHead && head === history.head &&
-      canonical(history.geometry) === canonical(geometry) &&
-      history.gateSymbol === (history.events.length ? "dual-fired-unanchored" : "sphere-ready");
-=======
             geometry: "separate-conceptual-origin",
             evidence: "unverified",
           }) ||
@@ -345,22 +224,13 @@ export function verifySphereShifts(
       canonical(history.geometry) === canonical(geometry) &&
       history.gateSymbol === (
         history.events.length ? "dual-fired-unanchored" : "sphere-ready"
-      );
->>>>>>> origin/main
+        );
   } catch {
     return false;
   }
 }
 
-<<<<<<< HEAD
 /** Glyph is a rendering state, not a security/qualification indicator. */
-export function gateSymbolSVG(state = "sphere-ready") {
-  if (!["sphere-ready", "dual-fired-unanchored"].includes(state))
-    throw new TypeError("Unknown gate symbol state");
-  const fired = state === "dual-fired-unanchored";
-  const color = fired ? "#ffb347" : "#4fd8ff";
-=======
-/** Rendering state only; not a qualification or security indicator. */
 export function gateSymbolSVG(state = "sphere-ready") {
   if (!["sphere-ready", "dual-fired-unanchored"].includes(state)) {
     throw new TypeError("Unknown gate symbol state");
@@ -368,8 +238,6 @@ export function gateSymbolSVG(state = "sphere-ready") {
 
   const fired = state === "dual-fired-unanchored";
   const color = fired ? "#ffb347" : "#4fd8ff";
-
->>>>>>> origin/main
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img">
 <title>${fired ? "Dual firing; Bitcoin timestamp unsubmitted" : "Sphere shift ready"}</title>
 <rect width="256" height="256" rx="16" fill="#050a14"/>
