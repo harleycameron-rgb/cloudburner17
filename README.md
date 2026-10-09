@@ -262,6 +262,32 @@ for the runtime rules.
 The `CLOUDBURNER17 Pipeline` GitHub Actions workflow runs the JavaScript tests
 on pushes to `main` with Node.js 20, alongside the existing zero-data workflow.
 
+## Make listed repositories writable
+
+`make_repos_writable.py` adds the current user's write permission to regular
+files and directories recursively for repositories in `repo_manifest.json`.
+The manifest starts empty because target repository paths must be chosen and
+reviewed locally; add one object with a `path` for each target. Relative paths
+are resolved from the manifest's directory, and absolute paths are accepted.
+
+Preview the changes first:
+
+```sh
+python3 make_repos_writable.py
+```
+
+The script is dry-run by default. After reviewing the preview and confirming
+the manifest paths, apply the changes explicitly:
+
+```sh
+python3 make_repos_writable.py --apply
+```
+
+Only the owner-write bit is added; existing permission bits are preserved.
+Symlinks and special files are not changed or followed. If repository
+inspection fails, no permissions are changed. Do not list directories unless
+you intend to make their regular files and directories writable by their owner.
+
 ## Container deployment
 
 Build from the repository root so the Dockerfile can copy both `backend/` and
