@@ -4,6 +4,11 @@ WORKDIR /app
 
 ENV PYTHONDONTWRITEBYTECODE=1
 
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends nodejs \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY package.json ./
 COPY backend/ backend/
 COPY src/ src/
 
