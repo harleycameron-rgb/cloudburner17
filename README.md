@@ -74,6 +74,14 @@ pipeline, test suite, and autonomous-cycle verification.
 The text assets specify contracts and schemas and do not alter runtime
 persistence behavior.
 
+`POST /spherical/ignite` bridges the website and Python backend to the Node.js
+spherical runtime. Its JSON body accepts `scenes`, optional sphere `options`,
+and optional `shifts` (`id` and `twistRadians`); the response includes the
+verified local source envelope and, when requested, the shift history. This is
+local verification only: it does not provide an external signature or submit a
+Bitcoin anchor. The deployment image includes Node.js; the endpoint becomes
+available once the spherical runtime modules are present.
+
 ### JavaScript test-result ingestion
 
 `src/ingest.js` exports `ingestTestResults(results)`, and `src/runtime.js`
