@@ -90,16 +90,20 @@ async function checkAdmission() {
   document.getElementById("output").textContent = JSON.stringify(await response.json());
 }
 async function runSpherical() {
-  const response = await fetch("/spherical/ignite", {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({
-      scenes: JSON.parse(document.getElementById("spherical-scenes").value),
-      shifts: JSON.parse(document.getElementById("spherical-shifts").value)
-    })
-  });
-  document.getElementById("output").textContent =
-    JSON.stringify(await response.json(), null, 2);
+  try {
+    const response = await fetch("/spherical/ignite", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        scenes: JSON.parse(document.getElementById("spherical-scenes").value),
+        shifts: JSON.parse(document.getElementById("spherical-shifts").value)
+      })
+    });
+    document.getElementById("output").textContent =
+      JSON.stringify(await response.json(), null, 2);
+  } catch (error) {
+    document.getElementById("output").textContent = String(error);
+  }
 }
 </script></body></html>"""
 

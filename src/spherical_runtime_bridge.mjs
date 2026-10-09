@@ -14,7 +14,12 @@ async function readRequest() {
     chunks.push(chunk);
   }
 
-  const request = JSON.parse(Buffer.concat(chunks).toString("utf8"));
+  let request;
+  try {
+    request = JSON.parse(Buffer.concat(chunks).toString("utf8"));
+  } catch {
+    throw new TypeError("Request must be valid JSON");
+  }
   if (!request || typeof request !== "object" || Array.isArray(request)) {
     throw new TypeError("Request must be an object");
   }
