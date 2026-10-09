@@ -41,7 +41,7 @@ export function sphericalGeometry({
   radius = 1, layerSpacing = 1,
 } = {}) {
   if (!Array.isArray(origin) || origin.length !== 3 ||
-      origin.some(v => !Number.isFinite(v) || Math.abs(v) > 1e9) ||
+      Array.from(origin).some(v => !Number.isFinite(v) || Math.abs(v) > 1e9) ||
       !Number.isFinite(tilt) || !Number.isFinite(radius) || radius <= 0 ||
       radius > 1e6 || !Number.isFinite(layerSpacing) ||
       layerSpacing <= 0 || layerSpacing > 1e6) throw new TypeError("Invalid sphere");
@@ -99,7 +99,7 @@ export class SphericalBurnHarness {
         typeof content !== "string" || !content.length ||
         !Number.isInteger(layer) || layer < 0 || layer >= 512 ||
         !Array.isArray(dependencies) ||
-        dependencies.some(d => typeof d !== "string") ||
+        Array.from(dependencies).some(d => typeof d !== "string") ||
         new Set(dependencies).size !== dependencies.length) {
       throw new TypeError("Invalid spherical admission");
     }
@@ -144,7 +144,7 @@ export class SphericalBurnHarness {
 
   converge(id, vector) {
     const record = this.#get(id);
-    if (!Array.isArray(vector) || !vector.length || vector.some(e =>
+    if (!Array.isArray(vector) || !vector.length || Array.from(vector).some(e =>
       !e || typeof e.name !== "string" || !e.name.length || typeof e.ok !== "boolean")) {
       throw new TypeError("Convergence requires nonempty named boolean checks");
     }
@@ -158,6 +158,8 @@ export class SphericalBurnHarness {
     if (!record.converged) throw new Error("Retirement requires passing convergence");
     if (record.dependencies.some(d => this.#get(d).module.state !== "burned"))
       throw new Error("Retirement requires burned dependencies");
+    // Native ancestry records this module's convergence, not cross-module burns.
+    // The dependency burn-order gate above is enforced separately by this adapter.
     retireModule(record.module, [record.module.moduleId]);
     return this.#view(record);
   }

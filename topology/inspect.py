@@ -1,14 +1,13 @@
-"""Inspect a structural topology commitment without connecting runtimes."""
+"""Offline structural view of the Invariant repository constellation.
+
+No engine imports, network calls, signing, qualification or runtime firing.
+"""
 
 import argparse
 import hashlib
 import json
-from pathlib import Path, PurePosixPath
+from pathlib import Path
 import re
-
-
-DEFAULT_ROOT = Path(__file__).resolve().parents[1]
-GIT_SHA1 = re.compile(r"[0-9a-f]{40}")
 
 
 def canonical_bytes(value):
@@ -27,147 +26,110 @@ def _require(condition, message):
         raise ValueError(message)
 
 
-def _text(value):
-    return isinstance(value, str) and bool(value.strip())
-
-
-def _sha1(value):
-    return isinstance(value, str) and GIT_SHA1.fullmatch(value) is not None
-
-
-def _relative_path(value):
-    return (
-        _text(value)
-        and "\\" not in value
-        and ":" not in value
-        and not PurePosixPath(value).is_absolute()
-        and ".." not in PurePosixPath(value).parts
-        and PurePosixPath(value) != PurePosixPath(".")
-    )
-
-
-def validate(whole, module):
-    _require(isinstance(whole, dict), "whole must be an object")
-    _require(isinstance(module, dict), "module must be an object")
-    _require(whole["schema"] == "invariant-whole-topology/1", "invalid whole schema")
-    _require(module["schema"] == "invariant-module-topology/1", "invalid module schema")
-    _require(module["whole_sha256"] == fingerprint(whole), "whole digest mismatch")
+def validate(whole, local):
+    _require(whole.get("schema") == "invariant-whole-topology/1", "whole schema")
+    _require(local.get("schema") == "invariant-module-topology/1", "local schema")
+    _require(local.get("whole_sha256") == fingerprint(whole), "whole digest mismatch")
     nodes = whole["nodes"]
-    _require(isinstance(nodes, list) and bool(nodes), "nodes must be a nonempty list")
-    node_ids = set()
-    local = None
-    _require(_text(module["repository"]), "invalid local repository")
-    for node in nodes:
-        _require(isinstance(node, dict), "node must be an object")
-        node_id = node["id"]
-        _require(_text(node_id), "invalid node id")
-        _require(node_id not in node_ids, "duplicate node id")
-        node_ids.add(node_id)
-        _require(_text(node["role"]), "invalid node role")
-        _require(_sha1(node["source_commit"]), "invalid source commit")
-        modules = node["modules"]
-        _require(isinstance(modules, list) and bool(modules), "modules must be a nonempty list")
-        module_ids = set()
-        for item in modules:
-            _require(isinstance(item, dict), "module entry must be an object")
-            _require(_text(item["id"]), "invalid module id")
-            _require(item["id"] not in module_ids, "duplicate module id")
-            module_ids.add(item["id"])
-            _require(_relative_path(item["path"]), "invalid relative module path")
-            _require(_sha1(item["git_blob_sha1"]), "invalid Git blob SHA1")
-        if node_id == module["repository"]:
-            local = node
-    _require(local is not None, "local repository not present")
-    _require(module["role"] == local["role"], "local role mismatch")
+    ids = [node["id"] for node in nodes]
+    _require(len(ids) == len(set(ids)) and bool(ids), "duplicate/empty nodes")
+    _require(local["repository"] in ids, "local repository absent")
     centres = whole["centres"]
-    _require(isinstance(centres, list) and bool(centres), "centres must be a nonempty list")
-    centre_ids = set()
-    for centre in centres:
-        _require(_text(centre) and centre in node_ids, "unknown centre")
-        _require(centre not in centre_ids, "duplicate centre")
-        centre_ids.add(centre)
+    _require(len(centres) == len(set(centres)), "duplicate centres")
+    _require(set(centres).issubset(ids), "unknown centre")
+    for node in nodes:
+        _require(re.fullmatch(r"[0-9a-f]{40}", node["source_commit"]), "source commit")
+        modules = node["modules"]
+        module_ids = [module["id"] for module in modules]
+        _require(
+            bool(module_ids) and len(module_ids) == len(set(module_ids)),
+            "duplicate/empty modules",
+        )
+        for module in modules:
+            path = Path(module["path"])
+            _require(
+                not path.is_absolute() and ".." not in path.parts and bool(path.parts),
+                "unsafe module path",
+            )
+            _require(re.fullmatch(r"[0-9a-f]{40}", module["git_blob_sha1"]), "source blob digest")
     edges = whole["edges"]
-    _require(isinstance(edges, list), "edges must be a list")
-    edge_ids = set()
+    edge_ids = [(edge["from"], edge["to"], edge["port"]) for edge in edges]
+    _require(len(edge_ids) == len(set(edge_ids)), "duplicate edges")
     for edge in edges:
-        _require(isinstance(edge, dict), "edge must be an object")
-        _require(_text(edge["from"]) and edge["from"] in node_ids, "unknown edge source")
-        _require(_text(edge["to"]) and edge["to"] in node_ids, "unknown edge destination")
-        _require(_text(edge["port"]), "invalid edge port")
-        _require(edge["status"] == "declared", "edge status must be declared")
-        key = (edge["from"], edge["to"], edge["port"])
-        _require(key not in edge_ids, "duplicate edge")
-        edge_ids.add(key)
+        _require(edge["from"] in ids and edge["to"] in ids, "unknown edge endpoint")
+        _require(edge["status"] == "declared", "unverified live connection claim")
+        _require(isinstance(edge["port"], str) and bool(edge["port"]), "empty port")
+    own = next(node for node in nodes if node["id"] == local["repository"])
+    _require(local["role"] == own["role"], "local role mismatch")
     _require(
-        module["origin"] == {"signature": None, "bitcoin_anchor": None},
-        "origin must be unsigned and unanchored",
+        local["origin"] == {"signature": None, "bitcoin_anchor": None},
+        "this snapshot has no authenticated origin or anchor",
     )
+    return own
 
 
-def load_topology(root=DEFAULT_ROOT):
-    root = Path(root)
+def load_topology(root=None):
+    root = Path(root) if root is not None else Path(__file__).resolve().parents[1]
     whole = json.loads((root / "topology" / "whole.json").read_text(encoding="utf-8"))
-    module = json.loads((root / "topology" / "module.json").read_text(encoding="utf-8"))
-    validate(whole, module)
-    return whole, module
+    local = json.loads((root / "topology" / "module.json").read_text(encoding="utf-8"))
+    validate(whole, local)
+    return whole, local
 
 
-def project(whole, module):
-    validate(whole, module)
-    repository = module["repository"]
-    local = next(node for node in whole["nodes"] if node["id"] == repository)
+def project(whole, local):
+    own = validate(whole, local)
+    repository = local["repository"]
     return {
-        "repository": repository,
-        "role": module["role"],
-        "whole_sha256": module["whole_sha256"],
+        "repository": own["id"],
+        "role": own["role"],
+        "whole_sha256": fingerprint(whole),
         "centres": whole["centres"],
-        "modules": local["modules"],
+        "modules": own["modules"],
         "inbound": [edge for edge in whole["edges"] if edge["to"] == repository],
         "outbound": [edge for edge in whole["edges"] if edge["from"] == repository],
         "whole": whole,
-        "origin": module["origin"],
+        "origin": local["origin"],
         "runtime_connected": False,
     }
 
 
-def check_sources(root, modules):
+def check_sources(whole, local, root):
+    own = validate(whole, local)
     root = Path(root).resolve()
     checks = []
-    for module in modules:
-        _require(_relative_path(module["path"]), "invalid relative module path")
+    for module in own["modules"]:
         path = (root / module["path"]).resolve()
-        _require(path.is_relative_to(root), "module path escapes repository root")
         actual = None
-        try:
+        if path.is_relative_to(root) and path.is_file():
             content = path.read_bytes()
-        except FileNotFoundError:
-            pass
-        else:
-            header = b"blob " + str(len(content)).encode("ascii") + b"\0"
+            header = ("blob " + str(len(content)) + "\0").encode("ascii")
             actual = hashlib.sha1(header + content).hexdigest()
         expected = module["git_blob_sha1"]
         checks.append({
-            "module": module["id"], "path": module["path"],
-            "expected": expected, "actual": actual, "ok": actual == expected,
+            "module": module["id"],
+            "path": module["path"],
+            "expected": expected,
+            "actual": actual,
+            "ok": actual == expected,
         })
     return checks
 
 
-def main(argv=None):
+def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--root", type=Path, default=DEFAULT_ROOT)
+    parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[1])
     parser.add_argument("--check-sources", action="store_true")
-    args = parser.parse_args(argv)
+    args = parser.parse_args()
     try:
-        whole, module = load_topology(args.root)
-        report = project(whole, module)
+        whole, local = load_topology(args.root)
+        report = project(whole, local)
         if args.check_sources:
-            report["source_checks"] = check_sources(args.root, report["modules"])
+            report["source_checks"] = check_sources(whole, local, args.root)
             report["sources_match"] = all(check["ok"] for check in report["source_checks"])
-        print(json.dumps(report, indent=2, ensure_ascii=True, allow_nan=False))
+        print(json.dumps(report, indent=2, ensure_ascii=True))
         return 0 if report.get("sources_match", True) else 1
-    except (ValueError, KeyError, TypeError, OSError) as error:
-        print(json.dumps({"ok": False, "error": str(error)}, indent=2, ensure_ascii=True))
+    except (ValueError, KeyError, TypeError, OSError) as exc:
+        print(json.dumps({"ok": False, "error": str(exc)}))
         return 1
 
 

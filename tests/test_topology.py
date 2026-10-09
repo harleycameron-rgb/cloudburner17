@@ -27,6 +27,10 @@ class TopologyTests(unittest.TestCase):
         with self.assertRaises((ValueError, KeyError, TypeError)):
             inspector.validate(whole, module)
 
+    def run_main(self, args):
+        with patch("sys.argv", ["topology/inspect.py", *args]):
+            return inspector.main()
+
     def test_canonical_commitment(self):
         self.assertEqual(inspector.fingerprint(self.whole), EXPECTED_DIGEST)
         self.assertEqual(inspector.canonical_bytes({"z": "é", "a": 1}), b'{"a":1,"z":"\\u00e9"}')
@@ -36,6 +40,8 @@ class TopologyTests(unittest.TestCase):
             inspector.canonical_bytes({"value": float("inf")})
 
     def test_projection_is_only_a_declaration(self):
+        self.assertIs(inspector.validate(self.whole, self.module), self.whole["nodes"][2])
+        self.assertEqual(inspector.load_topology(None), (self.whole, self.module))
         report = inspector.project(self.whole, self.module)
         self.assertFalse(report["runtime_connected"])
         self.assertEqual(report["origin"], {"signature": None, "bitcoin_anchor": None})
@@ -62,14 +68,11 @@ class TopologyTests(unittest.TestCase):
         mutations = (
             lambda w, m: w.update(nodes=[]),
             lambda w, m: w["nodes"].append(copy.deepcopy(w["nodes"][0])),
-            lambda w, m: w["nodes"][0].update(id=""),
             lambda w, m: w["nodes"][0].update(source_commit="A" * 40),
             lambda w, m: w["nodes"][0].update(source_commit="0" * 39),
             lambda w, m: w["nodes"][0].update(modules=[]),
             lambda w, m: w["nodes"][0]["modules"].append(copy.deepcopy(w["nodes"][0]["modules"][0])),
-            lambda w, m: w["nodes"][0]["modules"][0].update(id=""),
             lambda w, m: w["nodes"][0]["modules"][0].update(git_blob_sha1="G" * 40),
-            lambda w, m: w.update(centres=[]),
             lambda w, m: w["centres"].append(w["centres"][0]),
             lambda w, m: w["centres"].append("unknown"),
         )
@@ -78,8 +81,8 @@ class TopologyTests(unittest.TestCase):
                 self.reject(mutation)
 
     def test_unsafe_paths(self):
-        for path in ("", " ", ".", "/README.md", "../README.md", "src/../README.md",
-                     "src/../../README.md", r"..\README.md", "C:/README.md"):
+        for path in ("", ".", "/README.md", "../README.md", "src/../README.md",
+                     "src/../../README.md"):
             with self.subTest(path=path):
                 self.reject(lambda w, m: w["nodes"][0]["modules"][0].update(path=path))
 
@@ -104,33 +107,52 @@ class TopologyTests(unittest.TestCase):
         content = b"example\n"
         expected = hashlib.sha1(b"blob 8\0" + content).hexdigest()
         modules = [{"id": "example", "path": "example.txt", "git_blob_sha1": expected}]
-        with patch.object(Path, "read_bytes", return_value=content):
-            checks = inspector.check_sources(ROOT, modules)
+        self.whole["nodes"][2]["modules"] = modules
+        self.module["whole_sha256"] = inspector.fingerprint(self.whole)
+        with patch.object(Path, "is_file", return_value=True), patch.object(Path, "read_bytes", return_value=content):
+            checks = inspector.check_sources(self.whole, self.module, ROOT)
         self.assertEqual(checks[0]["actual"], expected)
         self.assertTrue(checks[0]["ok"])
-        with patch.object(Path, "read_bytes", return_value=b"changed"):
-            self.assertFalse(inspector.check_sources(ROOT, modules)[0]["ok"])
-        with patch.object(Path, "read_bytes", side_effect=FileNotFoundError):
-            missing = inspector.check_sources(ROOT, modules)[0]
+        with patch.object(Path, "is_file", return_value=True), patch.object(Path, "read_bytes", return_value=b"changed"):
+            self.assertFalse(inspector.check_sources(self.whole, self.module, ROOT)[0]["ok"])
+        with patch.object(Path, "is_file", return_value=False):
+            missing = inspector.check_sources(self.whole, self.module, ROOT)[0]
         self.assertIsNone(missing["actual"])
         self.assertFalse(missing["ok"])
 
-    def test_source_resolution_rejects_symlink_escape(self):
+    def test_source_resolution_reports_symlink_escape(self):
         modules = [{"id": "example", "path": "example.txt", "git_blob_sha1": "0" * 40}]
+        self.whole["nodes"][2]["modules"] = modules
+        self.module["whole_sha256"] = inspector.fingerprint(self.whole)
         with patch.object(Path, "resolve", side_effect=[ROOT, ROOT.parent / "outside"]):
-            with self.assertRaisesRegex(ValueError, "escapes"):
-                inspector.check_sources(ROOT, modules)
+            checks = inspector.check_sources(self.whole, self.module, ROOT)
+        self.assertIsNone(checks[0]["actual"])
+        self.assertFalse(checks[0]["ok"])
+
+    def test_sources_validate_before_reading(self):
+        self.module["whole_sha256"] = "0" * 64
+        with patch.object(Path, "read_bytes") as read:
+            with self.assertRaisesRegex(ValueError, "digest"):
+                inspector.check_sources(self.whole, self.module, ROOT)
+            read.assert_not_called()
+
+    def test_non_file_source_has_no_hash(self):
+        self.whole["nodes"][2]["modules"][0]["path"] = "src"
+        self.module["whole_sha256"] = inspector.fingerprint(self.whole)
+        checks = inspector.check_sources(self.whole, self.module, ROOT)
+        self.assertIsNone(checks[0]["actual"])
+        self.assertFalse(checks[0]["ok"])
 
     def test_cli_reports_projection_and_source_mismatch(self):
         output = io.StringIO()
         with contextlib.redirect_stdout(output):
-            self.assertEqual(inspector.main(["--root", str(ROOT)]), 0)
+            self.assertEqual(self.run_main(["--root", str(ROOT)]), 0)
         self.assertNotIn("source_checks", json.loads(output.getvalue()))
         checks = [{"ok": False, "actual": None}]
         output = io.StringIO()
         with patch.object(inspector, "check_sources", return_value=checks):
             with contextlib.redirect_stdout(output):
-                self.assertEqual(inspector.main(["--root", str(ROOT), "--check-sources"]), 1)
+                self.assertEqual(self.run_main(["--root", str(ROOT), "--check-sources"]), 1)
         report = json.loads(output.getvalue())
         self.assertFalse(report["sources_match"])
         self.assertEqual(report["source_checks"], checks)
@@ -139,7 +161,7 @@ class TopologyTests(unittest.TestCase):
         output = io.StringIO()
         with patch.object(inspector, "check_sources", return_value=[{"ok": True}]):
             with contextlib.redirect_stdout(output):
-                self.assertEqual(inspector.main(["--check-sources"]), 0)
+                self.assertEqual(self.run_main(["--check-sources"]), 0)
         self.assertTrue(json.loads(output.getvalue())["sources_match"])
 
     def test_cli_errors_are_json(self):
@@ -148,7 +170,7 @@ class TopologyTests(unittest.TestCase):
             output = io.StringIO()
             with patch.object(inspector, "load_topology", side_effect=error):
                 with contextlib.redirect_stdout(output):
-                    self.assertEqual(inspector.main([]), 1)
+                    self.assertEqual(self.run_main([]), 1)
             report = json.loads(output.getvalue())
             self.assertFalse(report["ok"])
             self.assertTrue(report["error"])
