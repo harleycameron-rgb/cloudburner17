@@ -141,6 +141,63 @@ and commitment equality; it is **not** RFC3161 or OpenTimestamps cryptographic
 verification and makes no external request. The root entry point's existing
 `verifyTimestampProof(event)` remains the separate local burn-event check.
 
+### Spherical lifecycle and dual-shift diagnostics
+
+The root entry point exports `SphericalBurnHarness`, `runSphericalBurnHarness`,
+`sphericalGeometry`, `radialPlacement`, `SHARED_ORIGIN`, and
+`verifySphericalEnvelope`. The declared shared origin is `[1024,1024,0]`;
+numeric layers are 0..511 with default radius `1 + layer`. Geometry options
+can override the origin, axis, tilt, base radius, and layer spacing.
+SHA-512-derived placements are deterministic, while random session IDs namespace
+the native commitments. The adapter calls the existing native
+admit → converge → retire → burn APIs; dependencies must burn before dependent
+retirement. That cross-module burn-order check lives in the adapter; native
+retirement checks the module's own recorded convergence ancestry. The native
+commitment registry remains process-wide; session IDs prevent overwrites, not
+global snapshot access or retention. Identical admission/burn retries deduplicate;
+changed inputs reject, including reordered dependency arrays.
+Exports retain commitments and ordered lifecycle/envelope hashes, not sample
+content. Module summaries are diagnostic views, not authenticated burn evidence;
+`verifySphericalEnvelope` verifies the burned-event chain.
+
+`SphereShiftGate` accepts a verified source snapshot and independently retained
+source head. Each shift twists its projection without changing origin, radial
+lengths, or source history, committing a complete linked surface-projection and
+linear-checkpoint pair synchronously in memory. `verifySphereShifts` additionally
+requires an independently retained shift head. Keep expected heads separately
+from subsequently received or mutable snapshots; using a supplied snapshot's
+own head alone cannot detect replacement or a rewritten/truncated history.
+`gateSymbolSVG` and `symbols/` render `sphere-ready` or `dual-fired-unanchored`;
+these states are not qualification or security indicators.
+
+These are local diagnostics only: signatures and Bitcoin anchors remain null,
+the checkpoint timestamp state is `not-submitted`, and atomic-gas geometry is
+a separate unverified conceptual declaration. No deployment, signing, trusted
+live qualification, Bitcoin timestamp submission, Zenodo deposit, visibility
+change, or physical atomic experiment is implemented. Trusted signed gate-writer
+qualification remains necessary for live admission.
+
+`topology/whole.json` preserves the supplied historical source pins and declared
+edges; it is not a runtime connector. `topology/module.json` binds its canonical
+SHA-256 digest. `topology/inspect.py` is offline and imports no engines. The
+appended entrypoint exports intentionally differ from its historical blob pin;
+source comparisons report differences without rewriting baseline pins.
+
+Run from the repository root:
+
+```sh
+python3 -B topology/inspect.py
+python3 -B topology/inspect.py --check-sources
+node --test tests/spherical_topology.test.js tests/sphere_shift_gate.test.js
+node --test tests/*.test.js
+node examples/spherical-demo.mjs
+PYTHONDONTWRITEBYTECODE=1 python -B -m unittest discover -s tests -v
+```
+
+Source comparisons exit 1 if any local source differs from the historical pins.
+The demo verifies its freshly created local snapshot; it is not an external
+authenticity or anchoring check.
+
 ### Agent-side live feed invocation
 
 The root-level `CLOUDBURNER17.js` entry point exports the same orchestrator.

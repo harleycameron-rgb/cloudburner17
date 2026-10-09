@@ -1,0 +1,10 @@
+{
+  "schema": "invariant-module-topology/1",
+  "repository": "harleycameron-rgb/cloudburner17",
+  "role": "central-runtime",
+  "whole_sha256": "4ff1bbf64b8f1ad2976cf849deac78429a9ce64a69ef1585bd9c73ed9532d9d5",
+  "origin": {
+    "signature": null,
+    "bitcoin_anchor": null
+  }
+}

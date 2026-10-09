@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img">
+<title>Dual firing; Bitcoin timestamp unsubmitted</title>
+<rect width="256" height="256" rx="16" fill="#050a14"/>
+<circle cx="128" cy="128" r="88" fill="none" stroke="#4fd8ff" stroke-width="2"/>
+<ellipse cx="128" cy="128" rx="42" ry="88" fill="none" stroke="#4fd8ff" stroke-width="2" transform="rotate(30 128 128)"/>
+<path d="M40 128H216M128 40V216" fill="none" stroke="#4fd8ff" stroke-width="1"/>
+<path d="M66 190Q128 222 190 190" fill="none" stroke="#ffb347" stroke-width="3" stroke-dasharray="5 5"/>
+<circle cx="84" cy="103" r="8" fill="#ffb347"/>
+<circle cx="172" cy="153" r="8" fill="#ffb347"/>
+<path d="M84 103L128 128L172 153" fill="none" stroke="#ffb347" stroke-width="3"/>
+<circle cx="128" cy="128" r="5" fill="#ffffff"/>
+<text x="128" y="235" text-anchor="middle" fill="#ffffff" font-size="10" font-family="monospace">DUAL / UNANCHORED</text>
+</svg>
