@@ -16,6 +16,7 @@ from supervisor import Supervisor
 from ignite import ignite
 from burn_harness import burn_harness
 from residue import Residue
+from tentacled_sphere import TentacledSphere
 
 sup = None
 SPHERICAL_BRIDGE = os.path.abspath(
@@ -55,6 +56,14 @@ async def runtime_stub():
         "status": "ok",
         "timestamp": time.time(),
     }
+
+
+@app.get("/tentacled-sphere")
+async def tentacled_sphere(seed: float = 1.0, delta: float = 0.1137):
+    try:
+        return TentacledSphere(seed=seed, delta=delta).actuate()
+    except ValueError as error:
+        raise HTTPException(status_code=422, detail=str(error)) from error
 
 
 @app.get("/", response_class=HTMLResponse)
