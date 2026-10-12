@@ -73,10 +73,15 @@ class TentacledSphere:
 
     @staticmethod
     def _pack(label, x, y, z):
+        if not all(math.isfinite(value) for value in (x, y, z)):
+            raise ValueError("geometry vectors must contain finite values")
+        curvature = abs(x * y * z) * 0.1137
+        if not math.isfinite(curvature):
+            raise ValueError("geometry curvature must be finite")
         return {
             "label": label,
             "vector": [round(x, 6), round(y, 6), round(z, 6)],
-            "curvature": round(abs(x * y * z) * 0.1137, 6),
+            "curvature": round(curvature, 6),
             "timestamp": time.time(),
         }
 
@@ -86,7 +91,12 @@ class TentacledSphere:
         for name, geometry in self.tentacles.items():
             if not math.isfinite(state):
                 raise ValueError("seed and delta produce a non-finite geometry state")
-            output[name] = geometry(state)
+            try:
+                output[name] = geometry(state)
+            except (OverflowError, ValueError) as error:
+                raise ValueError(
+                    "seed and delta must produce finite geometry values"
+                ) from error
             state += self.delta
         return output
 

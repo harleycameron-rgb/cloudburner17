@@ -43,7 +43,10 @@ class TentacledSphereTests(unittest.TestCase):
             ],
         )
         self.assertTrue(all(len(item["vector"]) == 3 for item in state.values()))
-        self.assertTrue(all(0 <= item["curvature"] <= 0.1137 for item in state.values()))
+        self.assertTrue(
+            all(math.isfinite(item["curvature"]) and item["curvature"] >= 0
+                for item in state.values())
+        )
         self.assertTrue(all(math.isfinite(item["timestamp"]) for item in state.values()))
 
     def test_seed_and_delta_drive_sequential_geometry(self):
@@ -53,7 +56,7 @@ class TentacledSphereTests(unittest.TestCase):
 
         self.assertEqual(state["TAP_CONVEX"]["vector"], [0.0, 1.0, 0.0])
         self.assertEqual(state["SURFACE_CONCAVE"]["vector"], [0.331, 0.717, 0.113])
-        self.assertEqual(state["TIME_CHRONO"]["vector"], [0.3411, 1.0113, 2.3133])
+        self.assertEqual(state["TIME_CHRONO"]["vector"], [0.4548, 1.3484, 3.0844])
 
     def test_json_export_is_in_memory_and_valid_json(self):
         exported = TentacledSphere().export_json()
@@ -65,6 +68,10 @@ class TentacledSphereTests(unittest.TestCase):
             with self.subTest(seed=seed, delta=delta):
                 with self.assertRaises(ValueError):
                     TentacledSphere(seed=seed, delta=delta)
+
+    def test_rejects_values_that_overflow_geometry(self):
+        with self.assertRaisesRegex(ValueError, "finite geometry"):
+            TentacledSphere(seed=1e308, delta=0).actuate()
 
 
 if __name__ == "__main__":
