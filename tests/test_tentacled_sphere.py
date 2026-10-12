@@ -55,7 +55,9 @@ class TentacledSphereTests(unittest.TestCase):
         state = sphere.actuate()
 
         self.assertEqual(state["TAP_CONVEX"]["vector"], [0.0, 1.0, 0.0])
-        self.assertEqual(state["SURFACE_CONCAVE"]["vector"], [0.331, 0.717, 0.113])
+        self.assertEqual(
+            state["SURFACE_CONCAVE"]["vector"], [0.330657, 0.717214, 0.113455]
+        )
         self.assertEqual(state["TIME_CHRONO"]["vector"], [0.4548, 1.3484, 3.0844])
 
     def test_json_export_is_in_memory_and_valid_json(self):
