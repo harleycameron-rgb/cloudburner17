@@ -72,6 +72,31 @@ Status `declared` would describe an unexercised assignment; `synthetic-tested`
 describes this tested local pathway; `integration-tested` requires executing the
 actual designated app-to-orrery-to-arm pathway, which remains pending.
 
+## In-memory synthetic Python scores
+
+`modules/synthetic_geometry.py` adds the supplied `SyntheticGeometry`
+generators for TAP, SURFACE, GAIN, HABITATAT, TIME, SPACE, SCANROOT and
+SCANDOCZERO, in that order. `in_memory=True` describes their execution:
+`run_cycle()` returns a new dictionary without storage or network operations.
+The module exposes `GEOMETRY` and `IN_MEMORY_RESULTS`; importing it does not
+print. Explicit execution with `python -B modules/synthetic_geometry.py`
+prints the dictionary locally.
+
+Defaults remain `seed=1.0` and `delta=0.1137`. Every cycle restarts from the
+seed and increments it after each function without modifying the seed.
+The shared score is `round(abs(x*y*z) * 0.1137, 6)`, a non-physical custom
+score, not measured curvature. Function labels are declared synthetic names,
+not verified planetary, psychosocial, lineage or HTML-app relationships.
+Tests exercise all eight supplied formulas, repeatability and the existing
+zero-data guard.
+
+These scores do not feed the JavaScript arms or establish an app-to-orrery-to-arm
+integration. The mapping table, physical units, time references, coordinate
+alignment and HTML paths remain pending. Zenodo publication remains disabled:
+no deposit workflow is added. Physical interpretation/curvature verification
+and HTML mapping must be completed before publication is reconsidered, and
+record-specific owner approval is still required.
+
 ## Authentication boundary
 
 This module does not issue credentials, authenticate users, grant repository
