@@ -31,6 +31,8 @@ input rows; they do not use global random state.
   alignment, and invariant cycles
 - `src/benchmark_agent.py`: in-memory sphere/surface, core, and flow drift
   metrics
+- `src/tentacled_sphere.py`: eight named geometry tentacles with in-memory JSON
+  serialization
 - `src/orchestrator.py`, `src/agent_interface.py`: unified engine facade
 - `src/agent_memory.py`, `src/agent_validator.py`: transient FIFO buffer and
   sentinel drift validation
@@ -71,6 +73,10 @@ state. The bridge rejects malformed vectors before routing them.
 The backend also exposes `GET /runtime`, a zero-mutation ignition status
 snapshot. Run `bash ignite.sh` from any directory to execute the supervised
 pipeline, test suite, and autonomous-cycle verification.
+`GET /tentacled-sphere` returns the eight geometry records; optional `seed` and
+`delta` query parameters control the sequential input values. The geometry JSON
+can also be serialized in memory with `TentacledSphere.export_json()`; no export
+file is written, consistent with the zero-data contract.
 The text assets specify contracts and schemas and do not alter runtime
 persistence behavior.
 
