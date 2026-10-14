@@ -213,3 +213,10 @@ review binary was unavailable; an independent read-only review identified
 the outside-root runtime packaging dependency. Splitting the standalone
 SCANDOC entry point and explicitly packaging its assets addresses that finding
 for the new preview surface without copying or changing native lifecycle code.
+The follow-up independent review found no significant issues. A requested
+parallel-validation rerun reported “no changes since last review/run” and
+skipped both analyses; this is not represented as a fresh final CodeQL scan.
+Latest inspected PR workflow run 38633202126 also reports `action_required`
+with zero jobs/no failed-job logs. GitHub CI is awaiting action, not passed.
+The bot's updated Ready preview deployment is
+<https://vercel.com/waxtablet/cloudburner17/CXuYspiCLfYgXKgnrfndFNT7pscD>.
