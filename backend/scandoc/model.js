@@ -252,7 +252,9 @@ export async function createController(demo, trustedCheckpoint) {
       validateTrajectory([...observed, ...next], demo.model);
       forecasts = freeze(next);
       return freeze({ stream: "forecast", status: "unverified-proposal", states: forecasts,
-        observedDigest: demo.trajectoryDigest, transitionAuthorized: false });
+        observedDigest: demo.trajectoryDigest,
+        boundary: verifyBoundary([...observed, ...next], null, demo.model),
+        transitionAuthorized: false });
     },
     forecast: () => forecasts,
   });

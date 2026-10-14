@@ -113,6 +113,8 @@ test("handshake validates full seed and checkpoint; immutable observation and se
   const body = clone(controller.body);
   const result = await controller.suppliedFiringResult({ body, proposals: [next] });
   assert.equal(result.stream, "forecast");
+  assert.equal(result.boundary.transitionAuthorized, false);
+  assert.ok(result.boundary.unresolved.length > 0);
   assert.equal(controller.forecast().length, 1);
   assert.equal(await digest(controller.observed), before);
   assert.equal(controller.observed.length, demo.trajectory.length);

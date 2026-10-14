@@ -6,11 +6,17 @@ are unchanged. SCANDOC does not call them or attach to their lifecycle.
 ## SCANDOC: local synthetic HTML sandbox
 
 Open `/scandoc` (also `/scandoc/`) on the existing FastAPI application.
-`backend/vercel.json` declares the FastAPI framework in the **existing**
-Vercel project's `backend` root. Keep the linked `waxtablet/cloudburner17`
+`backend/vercel.json` routes `/scandoc` and its assets to the self-contained
+FastAPI `scandoc_page.py` function in the **existing** Vercel project's `backend`
+root and explicitly includes `scandoc/**` assets. The full application mounts
+the same router. Keep the linked `waxtablet/cloudburner17`
 project (`prj_BvHWk06AfoyC9qsuqaLwg4VHj5ib`); Git preview automation handles
 the integration branch. No separate project, production promotion or merge
-is required. The existing `/` console remains separate and unchanged.
+is required. Native paths still route to `main.py`; these require the existing
+parent `src` runtime to be packaged by the deployment environment. SCANDOC's
+standalone function does not depend on those outside-root files. The existing
+`/` console remains separate and unchanged in the full application; native
+Vercel runtime packaging is not claimed verified by the sandbox preview.
 
 The page uses only allowlisted, preloaded assets at `/scandoc/{asset}`.
 Preloading occurs before Supervisor installs its process-wide filesystem
@@ -113,6 +119,8 @@ returns JSON locally; it never sends it. The supplied-result hook accepts only
 consecutive next ticks after the frozen observed prefix, validates geometry
 and time/velocity, and stores immutable proposals in a separate replaceable
 forecast stream. A forecast is unverified, never observed firing evidence.
+The forecast response also includes the same read-only boundary diagnostics;
+passing geometry input checks does not mean closure or measured evidence passed.
 
 ### Reproduce local exports
 
@@ -142,11 +150,11 @@ Python commands used `/tmp/scandoc-venv/bin/python` with
 | Exact command (from workspace root) | Result |
 | --- | --- |
 | `node --test tests/scandoc.test.js` | 6 passed, 0 failed/skipped |
-| `python -B -m pytest -p no:cacheprovider backend/tests/test_scandoc.py -v` | 1 passed; 1 upstream TestClient deprecation warning |
+| `python -B -m pytest -p no:cacheprovider backend/tests/test_scandoc.py -v` | 2 passed; 1 upstream TestClient deprecation warning |
 | `npm test` | 77 passed, 0 failed/skipped |
 | `python -B -m unittest discover -s tests -v` | 51 passed, 0 failed/skipped |
-| `python -B -m pytest -p no:cacheprovider backend/tests -v` | 6 passed, 0 failed/skipped; same warning |
-| `python -B -m unittest discover -s backend/tests -v` | 4 passed; unittest does not collect the two function-style tests (pytest does) |
+| `python -B -m pytest -p no:cacheprovider backend/tests -v` | 7 passed, 0 failed/skipped; same warning |
+| `python -B -m unittest discover -s backend/tests -v` | 4 passed; unittest does not collect the three function-style tests (pytest does) |
 | `python -B src/run_supervised_build.py` | exit 0, local stub pipeline completed |
 | `PYTHONPATH=src python -B -c "from autonomy import self_verify; assert self_verify()"` | exit 0 |
 | `python -B -m src.stabiliser` | exit 0 |
@@ -176,3 +184,32 @@ Playwright MCP failed with `Transport closed`; interactive browser validation
 is unavailable, not passed. HTTP smoke and focused model/controller tests ran
 instead. GitHub run 38631060265 reported `action_required` with zero jobs and
 no failed-job logs; main runs 38487176694 and 38487176642 were successful.
+
+The backend-only packaging smoke copied only `scandoc_page.py` and `scandoc/`
+to `/tmp/scandoc-backend-only`, then ran:
+
+```sh
+PYTHONDONTWRITEBYTECODE=1 /tmp/scandoc-venv/bin/python -B -c "from fastapi.testclient import TestClient; from scandoc_page import app; c=TestClient(app); assert c.get('/scandoc').status_code == 200; assert c.get('/scandoc/model.js').status_code == 200; assert c.post('/supervise/burn/y').status_code == 404; print('backend-only preview smoke passed')"
+```
+
+This passed without `src` or the native application. Docker was rebuilt and
+the integrated asset route rechecked after splitting the router.
+
+Local demo output files were emitted at `/tmp/scandoc-demo.json` and
+`/tmp/scandoc-demo.csv` (not committed). Final complete Cube digest:
+`1f6f88e0b6955c0e71bbbf3bc8119b43530cda4f5527dad977752fc76476705de3c8919e34f605ce41c97f56b91967f194455b93786fc96340cd5d34ff93550b`.
+Trajectory digest:
+`56265ceea99981f7e5ae04017cea6c79abdae0a9d80b82eaa1fbca7e0185d9b2b816528531ce75f97d38395bf91af1c6bd5d232ed4695ec1b43e2f908fffc7b7`.
+Per-face digests and complete provenance are in both exports.
+
+The existing project's Git automation reported a Ready preview at
+<https://cloudburner17-git-copilot-prj-bvhwk06afoyc9qsu-9da359-waxtablet.vercel.app/scandoc>
+on PR #34. No project was created or production promoted. A direct public
+preview request could not resolve DNS in this sandbox, so public runtime
+availability is not claimed verified.
+
+CodeQL reported zero Python/JavaScript alerts. The parallel automated code
+review binary was unavailable; an independent read-only review identified
+the outside-root runtime packaging dependency. Splitting the standalone
+SCANDOC entry point and explicitly packaging its assets addresses that finding
+for the new preview surface without copying or changing native lifecycle code.
