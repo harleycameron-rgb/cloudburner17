@@ -215,8 +215,9 @@ Python commands use `/tmp/scandoc-corrective-venv/bin/python` with
 | `node --test tests/scandoc.test.js tests/scandoc_page.test.js` | 9 passed, 0 failed/skipped |
 | `npm run test:typescript` | 4 passed, 0 failed/skipped; Node v24.21.0 |
 | `python -B -m pytest -p no:cacheprovider backend/tests/test_scandoc.py -v` | 2 passed; 1 upstream TestClient deprecation warning |
-| `npm test` | Final isolated run recorded in machine-readable report |
+| `npm test` | 80 passed, 0 failed/skipped |
 | `python -B -m unittest discover -s tests -v` | 51 passed, 0 failed/skipped |
+| `python -B -m pytest -p no:cacheprovider tests -v` | Same 51 tests passed; 44 subtests passed, 0 failed/skipped |
 | `python -B -m pytest -p no:cacheprovider backend/tests -v` | 7 passed, 0 failed/skipped; same warning |
 | `python -B -m unittest discover -s backend/tests -v` | 4 passed; unittest does not collect the three function-style tests (pytest does) |
 | `python -B src/run_supervised_build.py` | exit 0, local stub pipeline completed |
@@ -225,7 +226,7 @@ Python commands use `/tmp/scandoc-corrective-venv/bin/python` with
 | `python -B -m src.harmony` | exit 0 |
 | `python -B -m src.autonomy` | exit 0 |
 | `python -B -m src.agent_core` | exit 0 |
-| Docker build and GET-only `/scandoc` smoke | Final isolated commands/outcomes recorded in machine-readable report |
+| Docker build and GET-only `/scandoc` smoke | Build exit 0; page/model HTTP 200 and byte-identical model asset |
 | CI `/supervise/burn/y` POST smoke | Intentionally not invoked during corrective pass: no firing/lifecycle endpoint calls |
 
 The fresh workspace initially lacked FastAPI (`python -B -c 'import fastapi,
@@ -251,7 +252,7 @@ retries or by counting unittest/pytest overlap twice.
 
 Playwright MCP failed with `Transport closed`; interactive browser validation
 is unavailable, not passed. HTTP smoke and focused model/controller tests ran
-instead. Reviewed-head GitHub run 38633308546 reports `action_required` with
+instead. Corrective-code GitHub run 38639312066 reports `action_required` with
 zero jobs and no failed-job logs; GitHub CI is blocked, **not passed**.
 
 The existing project's Git automation reported a Ready preview at
@@ -266,3 +267,16 @@ blocked GitHub CI and unverified native runtime packaging/public preview access.
 The corrective pass requests review and stops before merge or production
 promotion. Security/review outcomes for the tested revision are recorded in
 the validation report rather than reusing the previous pass's results.
+
+Final tested code revision: `51ef6fba0120dba35429f5b15894282c45082340`.
+Subsequent changes only add this documentation and the recorded report. Exact
+artifact byte SHA-512 values in the report are distinct from canonical model
+commitments. The report's `testedRevision` is not a burn receipt. To reproduce
+its `model-report.json` byte hash, use that exact revision in `--revision`,
+not the later documentation commit.
+
+Independent review found no significant issues; the corrective CodeQL scan
+completed with zero Python/JavaScript alerts. The separate automated review
+binary was unavailable and is not represented as a passing review. The
+existing project's bot reported the corrective preview Ready:
+<https://vercel.com/waxtablet/cloudburner17/GMQcNxjEfkftDVopsmWZ4WVKMmoc>.
