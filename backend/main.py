@@ -5,11 +5,12 @@ import shutil
 import sys
 import time
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src")))
 
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, Response
 
 from admission import evaluate_submission
 from supervisor import Supervisor
@@ -23,6 +24,16 @@ SPHERICAL_BRIDGE = os.path.abspath(
     os.path.join(os.path.dirname(__file__), "..", "src", "spherical_runtime_bridge.mjs")
 )
 SPHERICAL_INPUT_LIMIT = 1024 * 1024
+# Read deployment assets before the supervisor installs its no-file-I/O guard.
+SCANDOC_ASSETS = {
+    name: (Path(__file__).parent / "scandoc" / name).read_text(encoding="utf-8")
+    for name in ("index.html", "app.js", "model.js", "style.css")
+}
+SCANDOC_CSP = (
+    "default-src 'none'; script-src 'self'; style-src 'self'; "
+    "connect-src 'none'; img-src 'none'; base-uri 'none'; "
+    "form-action 'none'; frame-ancestors 'none'"
+)
 
 
 @asynccontextmanager
@@ -48,6 +59,25 @@ async def lifespan(app):
 
 
 app = FastAPI(lifespan=lifespan)
+
+
+@app.get("/scandoc", response_class=HTMLResponse)
+@app.get("/scandoc/", response_class=HTMLResponse)
+async def scandoc():
+    return HTMLResponse(
+        SCANDOC_ASSETS["index.html"],
+        headers={"Content-Security-Policy": SCANDOC_CSP},
+    )
+
+
+@app.get("/scandoc/{asset}")
+async def scandoc_asset(asset: str):
+    media = {"app.js": "text/javascript", "model.js": "text/javascript",
+             "style.css": "text/css"}
+    if asset not in media:
+        raise HTTPException(status_code=404, detail="Unknown sandbox asset")
+    return Response(SCANDOC_ASSETS[asset], media_type=media[asset],
+                    headers={"X-Content-Type-Options": "nosniff"})
 
 
 @app.get("/runtime")
