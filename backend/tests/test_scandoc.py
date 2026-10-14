@@ -10,6 +10,9 @@ def test_scandoc_read_only_page_and_allowlisted_assets():
         assert response.status_code == 200
         assert "SCANDOC" in response.text
         assert "SYNTHETIC" in response.text
+        assert 'id="summary"' in response.text
+        assert 'id="geometry-data"' in response.text
+        assert 'id="example" disabled' in response.text
         assert "connect-src 'none'" in response.headers["content-security-policy"]
     for asset in ("model.js", "app.js", "style.css"):
         response = client.get("/scandoc/" + asset)

@@ -15,10 +15,16 @@
     <button id="json" disabled>Export local JSON</button>
     <button id="csv" disabled>Export local CSV</button>
     <button id="context" disabled>Request context (local only)</button>
-    <canvas id="view" width="900" height="420" aria-label="Synthetic six-face Cube and Sphere in declared shared-origin frame"></canvas>
+    <h2>Current synthetic run summary</h2>
+    <pre id="summary" aria-live="polite">Not run. No current commitments.</pre>
+    <canvas id="view" width="900" height="420" aria-label="Synthetic six-face Cube and Sphere in declared shared-origin frame" aria-describedby="geometry-data">Canvas unavailable. Complete textual geometry appears below after a local run.</canvas>
+    <details><summary>Accessible textual geometry and trajectory (canvas fallback)</summary>
+      <pre id="geometry-data">Not run.</pre>
+    </details>
     <p>Cube: +X, −X, +Y, −Y, +Z, −Z. Orange: Sphere. White: Sentinel at origin. Blue line: sampled synthetic trajectory. Spiral-back and pyramid-nose are optional visual layers only; torsion is disabled (no versioned rule supplied).</p>
     <label for="result">Supplied firing-result context hook (unverified forecast only; paste JSON locally)</label>
     <textarea id="result" rows="6" spellcheck="false" placeholder='{"body": &lt;exact exported context body&gt;, "proposals": [&lt;next complete state&gt;]}'></textarea>
+    <button id="example" disabled>Generate exact next-state example (do not submit)</button>
     <button id="proposal" disabled>Verify supplied proposal locally</button>
     <p id="status" role="status">Not run. No source receipts loaded.</p>
     <pre id="output"></pre>

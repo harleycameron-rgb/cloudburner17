@@ -1,7 +1,7 @@
-import {
-  verifyTimestampProof,
-  TimestampProof
-} from "./verifyTimestampProof";
+import { describe, test } from "node:test";
+import assert from "node:assert/strict";
+import { verifyTimestampProof } from "./verifyTimestampProof.ts";
+import type { TimestampProof } from "./verifyTimestampProof.ts";
 
 describe("verifyTimestampProof()", () => {
   test("accepts a valid proof with matching commitment hash", () => {
@@ -15,9 +15,9 @@ describe("verifyTimestampProof()", () => {
 
     const result = verifyTimestampProof(proof, "abc123");
 
-    expect(result.valid).toBe(true);
-    expect(result.reason).toBe("Stub verification passed");
-    expect(typeof result.verifiedAt).toBe("number");
+    assert.equal(result.valid, true);
+    assert.equal(result.reason, "Stub verification passed");
+    assert.equal(typeof result.verifiedAt, "number");
   });
 
   test("rejects malformed proof objects", () => {
@@ -31,8 +31,8 @@ describe("verifyTimestampProof()", () => {
 
     const result = verifyTimestampProof(malformed, "abc123");
 
-    expect(result.valid).toBe(false);
-    expect(result.reason).toBe("Malformed proof object");
+    assert.equal(result.valid, false);
+    assert.equal(result.reason, "Malformed proof object");
   });
 
   test("rejects proof when commitment hash does not match", () => {
@@ -46,8 +46,8 @@ describe("verifyTimestampProof()", () => {
 
     const result = verifyTimestampProof(proof, "expectedHash");
 
-    expect(result.valid).toBe(false);
-    expect(result.reason).toBe("Commitment hash mismatch");
+    assert.equal(result.valid, false);
+    assert.equal(result.reason, "Commitment hash mismatch");
   });
 
   test("verifiedAt is always populated", () => {
@@ -61,6 +61,6 @@ describe("verifyTimestampProof()", () => {
 
     const result = verifyTimestampProof(proof, "abc123");
 
-    expect(typeof result.verifiedAt).toBe("number");
+    assert.equal(typeof result.verifiedAt, "number");
   });
 });

@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { MODEL, CHANNELS, canonical, digest, baseline, medianCore, syntheticDemo,
   validateTrajectory, verifyBoundary, adaptSourceChannels, contextSeed, createController, toCSV,
+  nextProposal,
 } from "../backend/scandoc/model.js";
 
 const clone = value => structuredClone(value);
@@ -73,46 +74,102 @@ test("velocity, radius, frame, fixed anchors, six faces and increasing time", as
     await assert.rejects(syntheticDemo(changed));
   }
 });
-test("strict v0.6 unresolved evidence, containment, max-distance and actual endpoint", async () => {
+test("fixed-C closure, equality, positive inward rate and derived c6/abs(v7)", async () => {
   const demo = await syntheticDemo();
   assert.equal(demo.boundary.transitionAuthorized, false);
   assert.equal(demo.boundary.structuralMeltingAttachment, false);
   assert.ok(demo.boundary.unresolved.includes("actual endpoint missing"));
-  const evidence = { kind: "measured", receipt: "untrusted-test-string", originHash: "untrusted-test-string",
-    six: 1, seven: 1, residue: 0, inner: 1, outer: 2, endpoint: demo.trajectory.at(-1).sphere.center };
-  const model = clone(MODEL); model.policies.closureDistance = 10;
-  const result = verifyBoundary(demo.trajectory, evidence, model);
-  assert.equal(result.status, "unresolved"); // even supplied claims confer no authority
-  assert.equal(result.transitionAuthorized, false);
-  for (const patch of [{ seven: 0 }, { six: 1e-12 }, { seven: NaN }])
-    assert.ok(verifyBoundary(demo.trajectory, { ...evidence, ...patch }, model).unresolved.includes("six/seven denominator unresolved"));
-  for (const patch of [{ residue: 2 }, { inner: 3 }, { residue: -1 }])
-    assert.ok(verifyBoundary(demo.trajectory, { ...evidence, ...patch }, model).failed.includes("nested containment"));
-  assert.ok(verifyBoundary(demo.trajectory, evidence).failed.includes("max-distance closure"));
-  assert.ok(verifyBoundary(demo.trajectory, { ...evidence, endpoint: [0, 0, 0] }, model).failed.includes("actual endpoint proximity"));
-  const stationary = clone(demo.trajectory);
-  stationary.forEach(s => {
-    s.faces = clone(stationary[0].faces); s.sphere.center = clone(stationary[0].sphere.center);
+  assert.equal(demo.boundary.closure, "CLOSED");
+  assert.equal(demo.boundary.motion, "CLOSING");
+  assert.deepEqual(demo.boundary.referenceCenter, MODEL.baseline.C);
+  assert.ok(Math.abs(demo.boundary.maximumDistance - 0.8) < 1e-9);
+  assert.ok(Math.abs(demo.boundary.ratio.c6 - 0.05) < 1e-9);
+  assert.ok(Math.abs(demo.boundary.ratio.v7 + 0.1) < 1e-9);
+  assert.ok(Math.abs(demo.boundary.ratio.value - 0.5) < 1e-9);
+  const distant = clone(demo.trajectory);
+  distant.forEach(s => { s.sphere.center[0] += 100; });
+  const b = verifyBoundary(distant, null);
+  assert.equal(b.closure, demo.boundary.closure);
+  assert.equal(b.maximumDistance, demo.boundary.maximumDistance);
+  assert.equal(b.ratio.c6, demo.boundary.ratio.c6);
+  const stationaryCube = clone(demo.trajectory);
+  stationaryCube.forEach(s => { s.faces = clone(stationaryCube[0].faces); });
+  const model = clone(MODEL); model.policies.closureDistance = 1;
+  const zero = verifyBoundary(stationaryCube, null, model);
+  assert.equal(zero.maximumDistance, 1);
+  assert.equal(zero.closure, "CLOSED");
+  assert.equal(zero.motion, "STATIONARY");
+  assert.equal(zero.ratio.c6, 0);
+  assert.equal(zero.ratio.status, "RESOLVED_SYNTHETIC");
+  assert.equal(zero.ratio.value, 0);
+  assert.equal(zero.status, "UNRESOLVED"); // missing physical evidence, not failed closure
+  model.policies.closureDistance = 1 - 1e-12;
+  assert.equal(verifyBoundary(stationaryCube, null, model).closure, "NOT_CLOSED");
+  const expanding = clone(demo.trajectory);
+  expanding.forEach((s, i) => {
+    s.faces = s.faces.map(f => ({ ...f, position: f.anchor.map((v, k) =>
+      MODEL.baseline.C[k] + (v - MODEL.baseline.C[k])*(1 + i*0.1)) }));
+  });
+  const expansion = verifyBoundary(expanding, null);
+  assert.equal(expansion.closure, "CLOSED");
+  assert.equal(expansion.motion, "EXPANDING");
+  assert.ok(expansion.ratio.c6 < 0);
+  const stoppedSphere = clone(stationaryCube);
+  stoppedSphere.forEach(s => {
+    s.sphere.center = clone(stoppedSphere[0].sphere.center);
     s.sphere.velocity = [0, 0, 0];
   });
-  assert.ok(verifyBoundary(stationary, evidence, model).failed.includes("positive inward mean-radius closure rate"));
+  assert.equal(verifyBoundary(stoppedSphere, null).ratio.status, "UNRESOLVED");
+  const nearlyStopped = clone(stoppedSphere);
+  nearlyStopped.forEach((s, i) => {
+    s.sphere.center[0] += i*1e-10; s.sphere.velocity = [1e-10, 0, 0];
+  });
+  assert.equal(verifyBoundary(nearlyStopped, null).ratio.status, "UNRESOLVED");
+  assert.equal(verifyBoundary([demo.trajectory[0]], null).ratio.status, "UNRESOLVED");
+});
+test("boundary distinguishes INVALID_INPUT, missing evidence, containment breach and actual endpoint", async () => {
+  const demo = await syntheticDemo();
+  const evidence = { kind: "measured", receipt: "untrusted-test-string", originHash: "untrusted-test-string",
+    residue: 0, inner: 1, outer: 2, endpoint: demo.trajectory.at(-1).sphere.center };
+  const model = clone(MODEL);
+  const result = verifyBoundary(demo.trajectory, evidence, model);
+  assert.equal(result.status, "UNRESOLVED"); // supplied claims confer no authority
+  assert.equal(result.transitionAuthorized, false);
+  assert.equal(result.containment, "CONTAINED");
+  assert.equal(result.endpoint, "PROXIMATE");
+  for (const patch of [{ residue: 2 }, { inner: 3 }])
+    assert.equal(verifyBoundary(demo.trajectory, { ...evidence, ...patch }, model).status, "CONTAINMENT_BREACH");
+  for (const patch of [{ residue: -1 }, { outer: NaN }, { inner: "1" },
+    { endpoint: [1, 2] }, { kind: "synthetic" }, { receipt: null }, { six: 1 }, { rawTelemetry: [] }])
+    assert.equal(verifyBoundary(demo.trajectory, { ...evidence, ...patch }, model).status, "INVALID_INPUT");
+  assert.equal(verifyBoundary(demo.trajectory, {}, model).status, "UNRESOLVED");
+  for (const evidence of [false, [], "measured"])
+    assert.equal(verifyBoundary(demo.trajectory, evidence, model).status, "INVALID_INPUT");
+  for (const patch of [{ closureDistance: -1 }, { rateTolerance: 0 }, { epsilon: Infinity },
+    { endpointTolerance: -1 }, { segment: "exponential" }]) {
+    const invalid = clone(model); Object.assign(invalid.policies, patch);
+    assert.equal(verifyBoundary(demo.trajectory, null, invalid).status, "INVALID_INPUT");
+    await assert.rejects(syntheticDemo(invalid));
+  }
+  assert.equal(verifyBoundary(demo.trajectory, { ...evidence, endpoint: [0, 0, 0] }, model).status, "ENDPOINT_MISMATCH");
   model.policies.segment = "linear";
   const endpoint = clone(demo.trajectory.at(-1).sphere.center); endpoint[0] += 0.05;
   const crossing = verifyBoundary(demo.trajectory, { ...evidence, endpoint }, model);
   assert.equal(crossing.segmentIntersection, true);
-  assert.ok(crossing.failed.includes("actual endpoint proximity"));
+  assert.equal(crossing.endpoint, "ENDPOINT_MISMATCH");
 });
 test("handshake validates full seed and checkpoint; immutable observation and separate next-tick forecast", async () => {
   const demo = await syntheticDemo(), checkpoint = await contextSeed(demo);
   await assert.rejects(createController(demo, { ...checkpoint, seedHash: "bad" }));
   const controller = await createController(demo, checkpoint);
   const before = await digest(controller.observed);
-  const next = clone(demo.trajectory.at(-1));
-  next.tick++; next.time++;
-  next.sphere.center[0] -= 0.1; next.sphere.radius -= 0.05;
   const body = clone(controller.body);
+  const next = clone(nextProposal(body).proposals[0]);
   const result = await controller.suppliedFiringResult({ body, proposals: [next] });
   assert.equal(result.stream, "forecast");
+  assert.equal(result.geometryAcceptance, "ACCEPTED");
+  assert.equal(result.policyStatus, "ACCEPTED");
+  assert.equal(result.physicalEvidence, "UNRESOLVED");
   assert.equal(result.boundary.transitionAuthorized, false);
   assert.ok(result.boundary.unresolved.length > 0);
   assert.equal(controller.forecast().length, 1);
@@ -131,9 +188,66 @@ test("handshake validates full seed and checkpoint; immutable observation and se
   await assert.rejects(createController(tampered, checkpoint));
   assert.equal(controller.requestContext().originStatus, "unresolved");
   assert.equal(controller.requestContext().transmission, "disabled");
+  const seedWithoutPolicyLabels = clone(body);
+  delete seedWithoutPolicyLabels.forecastPolicy;
   for (const key of ["faces", "position", "anchor", "deltas", "rawTelemetry", "source"]) {
-    assert.ok(!JSON.stringify(body).includes(`"${key}":`));
+    assert.ok(!JSON.stringify(seedWithoutPolicyLabels).includes(`"${key}":`));
   }
+});
+test("forecast exact schemas and linear policy reject atomically; prior forecast and prefix survive", async () => {
+  const demo = await syntheticDemo();
+  const c = await createController(demo, await contextSeed(demo));
+  const example = nextProposal(c.body);
+  assert.equal(example.proposals[0].tick, 5);
+  assert.equal(example.proposals[0].time, 5);
+  assert.equal(example.proposals[0].sphere.radius, 0.75);
+  assert.equal(example.proposals[0].sphere.center[0], 1025.5);
+  await c.suppliedFiringResult(example);
+  const prior = await digest(c.forecast()), prefix = await digest(c.observed);
+  const mutations = [
+    x => { x.identity = "owner"; }, x => { x.proposals[0].rawTelemetry = []; },
+    x => { x.proposals[0].identity = "owner"; },
+    x => { x.proposals[0].torsion = 1; }, x => { x.proposals[0].sphere.torsion = 1; },
+    x => { x.proposals[0].frame.units.raw = "sensor"; },
+    x => { x.proposals[0].faces[0].identity = "owner"; },
+    x => { x.proposals[0].sphere.radius *= Math.exp(-0.05); },
+    x => { x.proposals[0].time = 6; x.proposals[0].sphere.velocity[0] = -0.05; },
+    x => { x.proposals[0].faces[0].position[0] += 0.1; },
+    x => { x.proposals[0].sphere.radius = Infinity; },
+    x => { x.proposals[0].sphere.radius = 0; },
+    x => { x.proposals[0].faces[0].position = [1e308, 1e308, 1e308]; },
+    x => { x.proposals[0].sphere.center[0] = -1e308; x.proposals[0].time = 4 + 1e-12; },
+    x => { x.proposals[0].tick = 7; },
+  ];
+  for (const mutate of mutations) {
+    const rejected = clone(example); mutate(rejected);
+    await assert.rejects(c.suppliedFiringResult(rejected));
+    assert.equal(await digest(c.forecast()), prior);
+    assert.equal(await digest(c.observed), prefix);
+  }
+  const badRadius = clone(example); badRadius.proposals[0].sphere.radius = 0.76;
+  await assert.rejects(c.suppliedFiringResult(badRadius), { code: "POLICY_REJECTION" });
+  const multiTick = clone(example);
+  const laterBody = clone(c.body);
+  laterBody.radiusPrefix.push({
+    tick: 5, time: 5, radius: 0.75, center: [1025.5, 1024, 0], velocity: [-0.1, 0, 0],
+    centerDistanceFromRadiusOrigin: 1.5,
+  });
+  multiTick.proposals.push(clone(nextProposal(laterBody).proposals[0]));
+  multiTick.proposals[1].sphere.radius = 0.71;
+  await assert.rejects(c.suppliedFiringResult(multiTick), { code: "POLICY_REJECTION" });
+  assert.equal(await digest(c.forecast()), prior);
+  assert.equal(await digest(c.observed), prefix);
+  const boundaryOverflow = clone(example);
+  boundaryOverflow.proposals[0].sphere.center = [-1.79e308, -1.79e308, -1.79e308];
+  assert.equal(verifyBoundary([boundaryOverflow.proposals[0]], null).status, "INVALID_INPUT");
+  const overflowStates = clone(demo.trajectory.slice(0, 2));
+  overflowStates[0].sphere.center[0] = 1e308;
+  overflowStates[1].sphere.center[0] = -1e308;
+  assert.equal(verifyBoundary(overflowStates, null).status, "INVALID_INPUT");
+  assert.throws(() => { c.observed[0].faces[0].position[0]++; });
+  assert.equal(c.body.forecastPolicy.schema, "linear-next/1");
+  assert.equal(c.body.evolution.schema, "linear-demo/1");
 });
 test("synthetic labels, eight-channel adapter and JSON/CSV exports never claim physical firing", async () => {
   const demo = await syntheticDemo();
@@ -148,6 +262,12 @@ test("synthetic labels, eight-channel adapter and JSON/CSV exports never claim p
   assert.equal(demo.genesisReceipt, null);
   assert.equal(demo.physicalConvergence, false);
   assert.equal(demo.frequency.physical, false);
+  assert.equal(demo.originStatus, "UNRESOLVED_NO_ORIGIN_RECEIPT");
+  assert.equal(demo.centerDistanceFromRadiusOrigin, demo.sentinelSeparation);
+  assert.notEqual(demo.centerDistanceFromRadiusOrigin, demo.trajectory.at(-1).sphere.radius);
+  assert.equal(demo.model.metadata.cmb.temperature.value, null);
+  assert.equal(demo.model.metadata.cmb.anisotropy.value, null);
+  assert.equal(demo.model.metadata.arbitraryScore.value, 0.1137);
   const csv = toCSV(demo);
   assert.equal(csv.trim().split("\n").length, 6);
   assert.ok(csv.includes(demo.cubeDigest) && csv.includes(demo.trajectoryDigest));
