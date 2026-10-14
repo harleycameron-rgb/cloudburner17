@@ -11,6 +11,11 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "s
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
 
+if __package__:
+    from .scandoc_page import router as scandoc_router
+else:
+    from scandoc_page import router as scandoc_router
+
 from admission import evaluate_submission
 from supervisor import Supervisor
 from ignite import ignite
@@ -48,6 +53,7 @@ async def lifespan(app):
 
 
 app = FastAPI(lifespan=lifespan)
+app.include_router(scandoc_router)
 
 
 @app.get("/runtime")

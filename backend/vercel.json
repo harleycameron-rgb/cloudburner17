@@ -1,0 +1,15 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "builds": [
+    {
+      "src": "scandoc_page.py",
+      "use": "@vercel/python",
+      "config": { "includeFiles": "scandoc/**" }
+    },
+    { "src": "main.py", "use": "@vercel/python" }
+  ],
+  "routes": [
+    { "src": "/scandoc(/.*)?", "dest": "/scandoc_page.py" },
+    { "src": "/(.*)", "dest": "/main.py" }
+  ]
+}

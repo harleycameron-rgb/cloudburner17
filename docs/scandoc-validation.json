@@ -1,0 +1,190 @@
+{
+  "schema": "scandoc-corrective-validation/1",
+  "reviewedHead": "23ed4816e350303b4c58d62ee2f3ebeb16f513c7",
+  "testedRevision": "51ef6fba0120dba35429f5b15894282c45082340",
+  "synthetic": true,
+  "evidenceKind": "local-synthetic-not-burn-or-genesis",
+  "genesisReceipt": null,
+  "physicalConvergence": false,
+  "transmission": "disabled",
+  "workspace": "/tmp/scandoc-corrective-workspace",
+  "artifactDirectory": "/tmp/scandoc-corrective-artifacts",
+  "runtime": {
+    "node": "v24.21.0",
+    "python": "3.12.3",
+    "pythonExecutable": "/tmp/scandoc-corrective-venv/bin/python",
+    "environment": { "PYTHONDONTWRITEBYTECODE": "1" },
+    "temporaryDependencies": {
+      "fastapi": "0.143.1",
+      "uvicorn": "0.54.0",
+      "pytest": "9.1.1",
+      "httpx": "0.28.1"
+    },
+    "dependencyAdvisoryCheck": "No vulnerabilities reported for these versions",
+    "repositoryDependenciesAddedOrUpdated": false
+  },
+  "cubeDigest": "ef0b82939240a307ee3dfa0509da27b0b3c91c2ea8f07420bc8e86dce1bc47731478f8822917ec0cd95dd92de032e136a135154206c93ff01a5223f4bc7ec639",
+  "perFaceDigests": [
+    "49f88eb97e417d7e346d357474062aae0dc2a6250dd29202cd04df158ac9a52d621e1e82a67105420d071cc1d7e23257ee07bf299178eca31e1bf39fb32d13f1",
+    "cc51a4bfc71906367ca45b7b2b80d95e5830209e293f3cc3d71a99aa0c64c2adbcae92c7ca646ef31346e477aa5c1a145cd838ef74672e190d043c276237b613",
+    "ab7de57b64eb33b5b22e6745af26d8296086a65f6ec5a1f27653967f4ea00956948c58afc458547a1c8220fcabaef06c14bf8edda84fd36d4d99efc9133b6700",
+    "941dcdc1e484dadba392b3cf43a55edf4ade1cd4219f490d3c68c58a1fe82efccb83159df6788db5667a08681f0ec8a90e24bde2da1f18cbad7216718ddd6c9c",
+    "4363fe4904bac171a7037a3148255b3bc7b532263f70e29fcca49c7a3ebe4b8f5ecc1e7623017cd70750d6f3497e9cbe021f8e82c216e1bead0c1c8e48d37e7c",
+    "e8480ce5668165a5787dee2d7a9efddb73df1d022f84d457c6138cabeb0b8254fa3dbdf8d4298a0f763add466a7bb1d013d7914d05095b747679d658fed02081"
+  ],
+  "modelDigest": "aae397697f79c6683c5ecdc20f6ead500090e9829e5898200c4eba25803dc6541676a01689de6ea0251f551005a6bd0db66a9887d0e0b1cdecf00164c338b0df",
+  "trajectoryDigest": "56265ceea99981f7e5ae04017cea6c79abdae0a9d80b82eaa1fbca7e0185d9b2b816528531ce75f97d38395bf91af1c6bd5d232ed4695ec1b43e2f908fffc7b7",
+  "seedDigest": "3ee2454b974d379e91444610e3a90f6e41a881d531388915b5d915e0b74a60aac50af06989784a97ba49ea569bad921b17f2acf6ee2136d7ec83e49bcb016ce3",
+  "digestConvention": "SHA-512 of canonical UTF-8 JSON, sorted object keys and retained array order; unsigned synthetic integrity only",
+  "finalSample": {
+    "tick": 4,
+    "time": 4,
+    "frame": {
+      "name": "native-sphere-cartesian",
+      "origin": [1024, 1024, 0],
+      "units": { "length": "diagnostic-unit", "time": "synthetic-second", "angle": "radian" }
+    },
+    "sphere": { "center": [1025.6, 1024, 0], "radius": 0.8, "velocity": [-0.1, 0, 0] },
+    "centerDistanceFromRadiusOrigin": 1.599999999999909,
+    "sentinel": [1024, 1024, 0],
+    "sentinelSeparation": 1.599999999999909,
+    "median": 0.20000000000004547,
+    "frequency": {
+      "schema": "synthetic-phase/1",
+      "value": 0.25,
+      "units": "cycles/synthetic-second",
+      "phase0": 0,
+      "epoch": 0,
+      "law": "phase0 + 2*pi*value*(time-epoch)",
+      "physical": false
+    },
+    "phase": 6.283185307179586,
+    "boundary": {
+      "status": "UNRESOLVED",
+      "geometryAcceptance": "ACCEPTED",
+      "physicalEvidence": "UNRESOLVED",
+      "closure": "CLOSED",
+      "motion": "CLOSING",
+      "referenceCenter": [1024, 1024, 0],
+      "maximumDistance": 0.8,
+      "meanDistance": 0.7999999999999696,
+      "ratio": {
+        "schema": "sampled-c6-v7/1",
+        "c6": 0.050000000000007594,
+        "v7": -0.10000000000013642,
+        "rateUnits": "diagnostic-unit/synthetic-second",
+        "value": 0.4999999999993938,
+        "status": "RESOLVED_SYNTHETIC"
+      },
+      "containment": "UNRESOLVED",
+      "endpoint": "UNRESOLVED",
+      "torsion": "UNRESOLVED",
+      "unresolved": [
+        "read-only context cannot authenticate measured evidence",
+        "torsion rule missing",
+        "trusted measured evidence/origin/receipt missing",
+        "nested containment missing",
+        "actual endpoint missing"
+      ],
+      "segmentIntersection": null,
+      "transitionAuthorized": false,
+      "structuralMeltingAttachment": false
+    }
+  },
+  "provenance": {
+    "kind": "synthetic",
+    "measured": false,
+    "source": "src/tentacled_sphere.py",
+    "sourceCommit": "ed9e5d68a9500eb506a5deba87adab9343f6505a",
+    "originHash": null,
+    "originStatus": "UNRESOLVED_NO_ORIGIN_RECEIPT",
+    "burnReceipt": null,
+    "sourceCommitIsBurnReceipt": false
+  },
+  "artifacts": [
+    {
+      "path": "/tmp/scandoc-corrective-artifacts/demo.json",
+      "command": "node examples/scandoc.mjs > /tmp/scandoc-corrective-artifacts/demo.json",
+      "fileBytesSHA512": "fcf187ce2982228c5da0c4a964465c5f765b7685f7d6883fbd9466c3884db805563669fa8a325b15f1f862b51ffee05bf1aaf7ffb35b8c809cd71bf04c7b6efa"
+    },
+    {
+      "path": "/tmp/scandoc-corrective-artifacts/demo.csv",
+      "command": "node examples/scandoc.mjs --csv > /tmp/scandoc-corrective-artifacts/demo.csv",
+      "fileBytesSHA512": "ef3ae60235ec1d81efa09129c186974c60ea8ae5959c126c87333db53a62d603f965c5f27e0b5c197b998a57c75ecae2ed175ebff51610ef66fe62db273775cb"
+    },
+    {
+      "path": "/tmp/scandoc-corrective-artifacts/next-proposal.json",
+      "command": "node examples/scandoc.mjs --proposal > /tmp/scandoc-corrective-artifacts/next-proposal.json",
+      "fileBytesSHA512": "f954b14e1e2f50c8a380451936d033a847e6c3d69eaae0b33840e91183b6f8a5bd281a29a5b625c1bad5ac23a180c9093737c4425703ce22558e7dee9291c1b7"
+    },
+    {
+      "path": "/tmp/scandoc-corrective-artifacts/model-report.json",
+      "command": "node examples/scandoc.mjs --report --revision 51ef6fba0120dba35429f5b15894282c45082340 > /tmp/scandoc-corrective-artifacts/model-report.json",
+      "fileBytesSHA512": "e6a9dd815375a9f7bd196d7734af161bfdfa755606e81136cf8fa2a7a8c29f989c590d93a16de73821db1faa8da9939db4115a8db4e364de7e99858fc33f222b"
+    }
+  ],
+  "commands": [
+    { "command": "npm test", "log": "npm-test.log", "exitCode": 0, "passed": 80, "failed": 0, "skipped": 0 },
+    { "command": "npm run test:typescript", "log": "typescript.log", "exitCode": 0, "passed": 4, "failed": 0, "skipped": 0, "minimumNode": "22.6" },
+    { "command": "node --test tests/scandoc.test.js tests/scandoc_page.test.js", "log": "targeted.log", "exitCode": 0, "passed": 9, "failed": 0, "skipped": 0 },
+    { "command": "/tmp/scandoc-corrective-venv/bin/python -B -m unittest discover -s tests -v", "log": "python-unittest.log", "exitCode": 0, "passed": 51, "failed": 0, "skipped": 0 },
+    { "command": "/tmp/scandoc-corrective-venv/bin/python -B -m pytest -p no:cacheprovider tests -v", "log": "python-pytest.log", "exitCode": 0, "passed": 51, "subtestsPassed": 44, "failed": 0, "skipped": 0 },
+    { "command": "/tmp/scandoc-corrective-venv/bin/python -B -m pytest -p no:cacheprovider backend/tests -v", "log": "backend-pytest.log", "exitCode": 0, "passed": 7, "failed": 0, "skipped": 0, "warnings": 1 },
+    { "command": "/tmp/scandoc-corrective-venv/bin/python -B -m unittest discover -s backend/tests -v", "log": "backend-unittest.log", "exitCode": 0, "passed": 4, "failed": 0, "skipped": 0, "notCollectedFunctionTests": 3 },
+    { "command": "/tmp/scandoc-corrective-venv/bin/python -B -m pytest -p no:cacheprovider backend/tests/test_scandoc.py -v", "log": "backend-targeted.log", "exitCode": 0, "passed": 2, "failed": 0, "skipped": 0, "warnings": 1 },
+    { "command": "/tmp/scandoc-corrective-venv/bin/python -B src/run_supervised_build.py", "log": "ci-supervised.log", "exitCode": 0, "scope": "local synthetic in-memory stub pipeline, not a firing endpoint" },
+    { "command": "PYTHONPATH=src /tmp/scandoc-corrective-venv/bin/python -B -c \"from autonomy import self_verify; assert self_verify()\"", "log": "ci-self-verify.log", "exitCode": 0 },
+    { "command": "/tmp/scandoc-corrective-venv/bin/python -B -m src.stabiliser", "log": "ci-stabiliser.log", "exitCode": 0 },
+    { "command": "/tmp/scandoc-corrective-venv/bin/python -B -m src.harmony", "log": "ci-harmony.log", "exitCode": 0 },
+    { "command": "/tmp/scandoc-corrective-venv/bin/python -B -m src.autonomy", "log": "ci-autonomy.log", "exitCode": 0 },
+    { "command": "/tmp/scandoc-corrective-venv/bin/python -B -m src.agent_core", "log": "ci-agent_core.log", "exitCode": 0 },
+    { "command": "docker build -t scandoc-corrective-validation -f backend/Dockerfile .", "log": "docker-build.log", "exitCode": 0 },
+    { "command": "docker run --rm -d --name scandoc-corrective-smoke -p 18000:8000 scandoc-corrective-validation", "log": "docker-run.log", "exitCode": 0 },
+    { "command": "curl --fail --silent --show-error -D /tmp/scandoc-corrective-artifacts/http-headers.txt http://localhost:18000/scandoc -o /tmp/scandoc-corrective-artifacts/http-page.html", "exitCode": 0, "httpStatus": 200, "connectCSP": "none" },
+    { "command": "curl --fail --silent --show-error http://localhost:18000/scandoc/model.js -o /tmp/scandoc-corrective-artifacts/http-model.js", "exitCode": 0, "httpStatus": 200 },
+    { "command": "cmp /tmp/scandoc-corrective-workspace/backend/scandoc/model.js /tmp/scandoc-corrective-artifacts/http-model.js", "exitCode": 0 },
+    { "command": "cmp /tmp/scandoc-corrective-artifacts/demo.json /tmp/scandoc-corrective-artifacts/demo-repeat.json", "exitCode": 0, "scope": "second node examples/scandoc.mjs output matched byte-for-byte" },
+    {
+      "command": "node --input-type=module -e 'import fs from \"node:fs\"; import assert from \"node:assert/strict\"; import {digest,createController,nextProposal} from \"./backend/scandoc/model.js\"; const {checkpoint,context,nextStateExample,...demo}=JSON.parse(fs.readFileSync(\"/tmp/scandoc-corrective-artifacts/demo.json\",\"utf8\")); assert.equal(await digest(context.body),context.seedHash); assert.equal(demo.cubeDigest,await digest(demo.cubeState)); assert.equal(demo.trajectoryDigest,await digest(demo.trajectory)); const c=await createController(demo,checkpoint); assert.deepEqual(nextProposal(context.body),nextStateExample); const r=await c.suppliedFiringResult(nextStateExample); assert.equal(r.stream,\"forecast\"); assert.equal(r.physicalEvidence,\"UNRESOLVED\"); console.log(\"Local exported-seed proposal accepted as unverified forecast; observed prefix unchanged\");'",
+      "log": "export-handshake.log",
+      "exitCode": 0
+    }
+  ],
+  "countingNote": "Focused tests and unittest/pytest runs overlap; counts are per-command, not summed as unique coverage. Node 18/20 CI excludes the separately declared native TypeScript runner.",
+  "earlierAttempts": [
+    { "scope": "uncommitted corrective fixtures", "command": "node --test tests/scandoc.test.js", "passed": 6, "failed": 2, "reason": "Policy label matched telemetry-name assertion; overflow fixture remained finite. Assertions corrected, not removed." },
+    { "scope": "uncommitted corrective fixtures", "command": "node --test tests/scandoc.test.js tests/scandoc_page.test.js", "passed": 8, "failed": 1, "reason": "Hyphenated mock DOM property typo; corrected." },
+    { "command": "python -B -c 'import fastapi, pytest, httpx; print(fastapi.__version__, pytest.__version__, httpx.__version__)'", "exitCode": 1, "reason": "No module named fastapi in system Python; resolved using the temporary venv." }
+  ],
+  "skipsAndUnavailable": [
+    { "check": "GitHub Zero-data validation run 38639312066", "status": "BLOCKED_ACTION_REQUIRED", "jobs": 0, "failedJobs": 0, "logs": "No failed jobs found; no jobs started" },
+    { "check": "Playwright interactive browser", "status": "UNAVAILABLE", "reason": "MCP Transport closed; not passed" },
+    { "check": "automated parallel Code Review binary", "status": "UNAVAILABLE", "reason": "autofind binary not found; not passed" },
+    { "check": "CI POST /supervise/burn/y smoke", "status": "NOT_INVOKED", "reason": "No firing/lifecycle endpoint calls during corrective pass; GET-only sandbox smoke used instead" },
+    { "check": "native Vercel runtime packaging and public preview access", "status": "UNVERIFIED" }
+  ],
+  "review": { "tool": "independent read-only code-review agent", "result": "No significant issues found in reviewed corrective changes" },
+  "codeql": { "languages": ["python", "javascript"], "alerts": 0, "result": "Analysis completed for corrective code revision" },
+  "preview": {
+    "projectId": "prj_BvHWk06AfoyC9qsuqaLwg4VHj5ib",
+    "team": "waxtablet",
+    "statusSource": "existing Vercel GitHub bot on PR 34",
+    "reportedStatus": "Ready",
+    "url": "https://cloudburner17-git-copilot-prj-bvhwk06afoyc9qsu-9da359-waxtablet.vercel.app/scandoc",
+    "deployment": "https://vercel.com/waxtablet/cloudburner17/GMQcNxjEfkftDVopsmWZ4WVKMmoc",
+    "publicRuntimeVerified": false,
+    "productionPromotion": false
+  },
+  "remainingBlockers": [
+    "No authenticated measured firing evidence, origin hash or genesis/burn receipt",
+    "Baseline calibration synthetic-only; eight source-channel mappings incomplete",
+    "Torsion rule absent; fields rejected and status unresolved",
+    "Interactive browser unavailable and GitHub CI blocked",
+    "Native Vercel runtime packaging/public runtime availability unverified"
+  ],
+  "lifecycleModulesModified": false,
+  "liveEndpointsCalled": false,
+  "mergePerformed": false,
+  "mainModified": false,
+  "reviewRequiredBeforeMerge": true
+}
