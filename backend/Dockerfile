@@ -6,6 +6,7 @@ ENV PYTHONDONTWRITEBYTECODE=1
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends nodejs \
+    && node --input-type=commonjs -e 'const major = Number(process.versions.node.split(".")[0]); if (major < 18) { console.error("Node.js >=18 required; found " + process.versions.node); process.exit(1); }' \
     && rm -rf /var/lib/apt/lists/*
 
 COPY package.json ./
