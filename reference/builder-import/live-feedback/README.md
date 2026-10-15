@@ -107,6 +107,11 @@ The initial PR runs required approval. No workflows were retried or approval
 gates bypassed. A container/Vercel build was not run here and no deployment
 was made; source-archive tests and local runtime checks are reported separately.
 
+Changed-file secret scans found no secrets. CodeQL completed Python and
+JavaScript analysis with **zero alerts**. The automated code-review wrapper
+reported its review binary unavailable; a separate read-only code-review agent
+reviewed the source-commit diff and found no significant issues.
+
 ## Manual browser acceptance (target hardware still required)
 
 1. Use HTTPS or localhost. From `/`, follow the link. Repeat with both page URL
