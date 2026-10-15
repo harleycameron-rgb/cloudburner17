@@ -29,6 +29,15 @@ test("accepts the exact six launch roles with unresolved values and a closed gat
   assert.equal(contract.roles.every(({ measurement }) => measurement === null), true);
 });
 
+test("accepts finite role measurements without requiring them to be equal", () => {
+  const contract = validReadiness();
+  contract.roles.forEach((role, index) => {
+    role.measurement = index + 0.5;
+  });
+
+  assert.equal(validateHash1536Readiness(contract), true);
+});
+
 test("rejects either post-launch extension as a launch contract", () => {
   for (const extension of [
     {
