@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cloudburner — live feedback prototype</title>
+<style>
+body{background:#071322;color:#d8efff;font:16px system-ui;max-width:960px;margin:auto;padding:20px}canvas{width:100%;background:#000;border:1px solid #3bd3ee}button{padding:12px;margin:6px}label{display:flex;gap:16px;justify-content:space-between;margin:12px 0}input{width:60%}video{display:none}small{color:#b6c8d7}#status{min-height:3em}meter{width:100%}
+</style>
+<h1>CLOUDBURNER / LIVE FEEDBACK</h1>
+<p>Synthetic visual deformation. Not an AI model, invariant proof or ignition controller.</p>
+<canvas id="view" width="640" height="360" aria-label="Camera-driven synthetic visual output"></canvas>
+<video id="camera" muted playsinline autoplay></video>
+<p><button id="start">Start camera + microphone</button><button id="stop" disabled>Stop and clear</button></p>
+<p id="status" role="status" aria-live="polite">Idle. Devices off. Live engine gate CLOSED.</p>
+<label>Microphone level <meter id="level" min="0" max="1" value="0"></meter></label>
+<div id="loads"></div>
+<small>Requires HTTPS or localhost and device permission. No application upload, recording, storage or speaker playback. The microphone modulates visuals only. Six sliders are manual research inputs, not connected app telemetry. Local frames/audio buffers are cleared on Stop.</small>
+<script type="module" src="./live.mjs"></script>
+</html>

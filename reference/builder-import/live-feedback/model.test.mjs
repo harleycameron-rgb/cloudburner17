@@ -1,0 +1,11 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {IDS,compute,rms} from './model.mjs';
+test('six canonical identities',()=>assert.deepEqual(IDS,['tap','surface','gain','habitat','engine','business']));
+test('unity and silence produce no melt',()=>assert.equal(compute([1,1,1,1,1,1],0).melt,0));
+test('sound increases deformation',()=>assert.ok(compute([1,1,1,1,1,1],1).melt>compute([1,1,1,1,1,1],0).melt));
+test('deterministic bounded result',()=>{const a=compute([0,1,0,1,0,1],1);assert.deepEqual(a,compute([0,1,0,1,0,1],1));assert.ok(a.melt>=0&&a.melt<=1);});
+test('reject invalid loads',()=>{for(const x of [[],[1,1,1,1,1,NaN],[1,1,1,1,1,2],[1,1,1,1,1,true]])assert.throws(()=>compute(x,0));});
+test('reject invalid sound',()=>{for(const x of [NaN,Infinity,-1,2,true])assert.throws(()=>compute([1,1,1,1,1,1],x));});
+test('RMS silence and unit amplitude',()=>{assert.equal(rms(new Float32Array(16)),0);assert.equal(rms(new Float32Array([1,-1])),1);});
+test('reject invalid sample buffers',()=>{assert.throws(()=>rms([]));assert.throws(()=>rms(new Float32Array()));assert.throws(()=>rms(new Float32Array([NaN])));});
