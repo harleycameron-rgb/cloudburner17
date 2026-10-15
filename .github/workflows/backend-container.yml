@@ -1,0 +1,22 @@
+name: Backend container
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Build backend image
+        run: docker build --progress=plain -f backend/Dockerfile -t cloudburner17:ci .
+      - name: Verify Node minimum inside image
+        run: |
+          docker run --rm --entrypoint node cloudburner17:ci --input-type=commonjs -e 'console.log("Node.js " + process.versions.node); if (Number(process.versions.node.split(".")[0]) < 18) process.exit(1);'
