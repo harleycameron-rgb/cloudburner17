@@ -37,8 +37,10 @@ export function validateHash1536Readiness(value) {
 
   if (!Array.isArray(value.geometryReference)
     || value.geometryReference.length !== GEOMETRY_REFERENCE.length
-    || !value.geometryReference.every((coordinate, index) =>
-      Number.isFinite(coordinate) && coordinate === GEOMETRY_REFERENCE[index])) {
+    || !GEOMETRY_REFERENCE.every((expected, index) =>
+      Object.hasOwn(value.geometryReference, index)
+      && Number.isFinite(value.geometryReference[index])
+      && value.geometryReference[index] === expected)) {
     return false;
   }
 

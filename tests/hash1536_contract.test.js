@@ -93,6 +93,62 @@ test("rejects nonfinite measurements and reference coordinates", () => {
   assert.equal(validateHash1536Readiness(changedReference), false);
 });
 
+test("rejects sparse geometry references, including inherited coordinates", () => {
+  const sparseReferences = [
+    new Array(3),
+    [1024, , 0],
+    [, 1024, 0],
+    [1024, 1024, ,],
+  ];
+
+  const inheritedCoordinate = [1024, , 0];
+  const localPrototype = Object.create(Array.prototype);
+  localPrototype[1] = 1024;
+  Object.setPrototypeOf(inheritedCoordinate, localPrototype);
+  assert.equal(Object.hasOwn(inheritedCoordinate, 1), false);
+  sparseReferences.push(inheritedCoordinate);
+
+  for (const geometryReference of sparseReferences) {
+    const contract = validReadiness();
+    contract.geometryReference = geometryReference;
+    assert.equal(validateHash1536Readiness(contract), false);
+  }
+});
+
+test("rejects malformed records, missing or extra keys, altered phase, and qualification status", () => {
+  for (const record of [null, undefined, "record", 1, true, [], ""]) {
+    assert.equal(validateHash1536Readiness(record), false);
+  }
+
+  const missingKey = validReadiness();
+  delete missingKey.phase;
+  assert.equal(validateHash1536Readiness(missingKey), false);
+
+  const extraKey = validReadiness();
+  extraKey.unexpected = true;
+  assert.equal(validateHash1536Readiness(extraKey), false);
+
+  const alteredPhase = validReadiness();
+  alteredPhase.phase = "LAUNCH";
+  assert.equal(validateHash1536Readiness(alteredPhase), false);
+
+  const alteredQualification = validReadiness();
+  alteredQualification.qualification.status = "QUALIFIED";
+  assert.equal(validateHash1536Readiness(alteredQualification), false);
+});
+
+test("rejects nonnumeric measurements except explicit null", () => {
+  for (const measurement of [undefined, "1", true, {}, []]) {
+    const contract = validReadiness();
+    contract.roles[0].measurement = measurement;
+    assert.equal(validateHash1536Readiness(contract), false);
+  }
+
+  const unresolved = validReadiness();
+  unresolved.roles[0].measurement = null;
+  assert.equal(validateHash1536Readiness(unresolved), true);
+});
+
 test("rejects any attempt to mark unresolved qualification as authorized", () => {
   const contract = validReadiness();
   contract.qualification.authorized = true;
