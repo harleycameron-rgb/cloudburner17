@@ -1,0 +1,25 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "builds": [
+    {
+      "src": "backend/scandoc_page.py",
+      "use": "@vercel/python",
+      "config": { "includeFiles": "backend/scandoc/**" }
+    },
+    {
+      "src": "backend/live_feedback_page.py",
+      "use": "@vercel/python",
+      "config": { "includeFiles": "backend/live_feedback/**" }
+    },
+    {
+      "src": "backend/main.py",
+      "use": "@vercel/python",
+      "config": { "includeFiles": "{src/**,backend/scandoc/**,backend/live_feedback/**,backend/*_page.py,package.json}" }
+    }
+  ],
+  "routes": [
+    { "src": "/scandoc(/.*)?", "dest": "/backend/scandoc_page.py" },
+    { "src": "/live-feedback(/.*)?", "dest": "/backend/live_feedback_page.py" },
+    { "src": "/(.*)", "dest": "/backend/main.py" }
+  ]
+}

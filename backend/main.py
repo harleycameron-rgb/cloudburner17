@@ -13,8 +13,10 @@ from fastapi.responses import HTMLResponse
 
 if __package__:
     from .scandoc_page import router as scandoc_router
+    from .live_feedback_page import router as live_feedback_router
 else:
     from scandoc_page import router as scandoc_router
+    from live_feedback_page import router as live_feedback_router
 
 from admission import evaluate_submission
 from supervisor import Supervisor
@@ -54,6 +56,7 @@ async def lifespan(app):
 
 app = FastAPI(lifespan=lifespan)
 app.include_router(scandoc_router)
+app.include_router(live_feedback_router)
 
 
 @app.get("/runtime")
@@ -77,6 +80,7 @@ def frontend():
     return """<!doctype html>
 <html><head><meta charset="utf-8"><title>CLOUDBURNER17</title></head>
 <body><h1>CLOUDBURNER17 Supervisor</h1>
+<p><a href="/live-feedback">Live feedback — isolated camera/microphone research prototype</a></p>
 <button onclick="run('burn')">Burn</button>
 <button onclick="run('ignite')">Ignite</button>
 <button onclick="run('residue')">Residue</button>
