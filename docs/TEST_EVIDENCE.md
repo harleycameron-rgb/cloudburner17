@@ -85,3 +85,5 @@ the suite. Runtime versions for these commands: Node.js `v24.21.0`, npm
 CodeQL JavaScript analysis completed with **0 alerts**. The automated code
 review component reported no comments but was unavailable because its review
 binary was not present; this is not an independent code-review result.
+The repair was revalidated after the implementation commit: CodeQL reported
+**0 JavaScript alerts**; the automated review component remained unavailable.

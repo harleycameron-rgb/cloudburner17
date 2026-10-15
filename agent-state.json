@@ -41,5 +41,5 @@
     "GitHub Actions runs 38809903228 and 38809903111 were action_required with zero jobs, so CI build status is unknown.",
     "The automated code-review component was unavailable; no independent review findings were produced."
   ],
-  "nextExecutableAction": "Commit evidence updates and report the verified repair; do not intentionally deploy or enable live qualification."
+  "nextExecutableAction": "Report the verified repair and stop; do not intentionally deploy or enable live qualification."
 }
