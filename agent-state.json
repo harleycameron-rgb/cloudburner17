@@ -1,36 +1,45 @@
 {
-  "currentTask": "Implement one bounded, inert hash1536 readiness contract and document verified status.",
+  "currentTask": "Repair sparse geometry validation on the existing hash1536 readiness PR.",
   "completedTasks": [
     "Confirmed actual starting commit f9cbea547d8f0a867b91f8a5be254f27b46b7543 has expected baseline f18e32ad41333c44cc53b3fc42009df3e0a0abf8 as its parent.",
     "Added an additive typed readiness contract for exactly six launch roles and two separate post-launch extension types.",
     "Kept unresolved qualification explicit and the live gate closed.",
     "Added eight focused tests and measured validator-only line, branch, and function coverage.",
     "Ran the existing JavaScript test suite after auditing it for live-service side effects.",
-    "CodeQL JavaScript analysis reported zero alerts."
+    "CodeQL JavaScript analysis reported zero alerts.",
+    "Reproduced sparse-reference acceptance against the old validator before applying the own-coordinate check.",
+    "Added sparse-array, inherited-coordinate, malformed-record, phase, qualification, and measurement regressions.",
+    "Focused repair suite passed 11 tests with 100% validator-only line, branch, and function coverage.",
+    "Audited npm test suite passed 91 tests; no deployed-service test calls were found."
   ],
   "pendingTasks": [
-    "Independent automated code review could not run because its review binary was unavailable."
+    "No further implementation tasks; independent deployment/preview status remains unverified."
   ],
-  "lastVerifiedSourceCommit": "bbc4843b6bc3cfb2fd5a66a434aebaab586bd346",
+  "lastVerifiedSourceCommit": "9c0365a7b13957c0d6cc7d18a74c73e0612d93bf",
   "lastVerifiedDeployment": null,
   "testResults": {
+    "preFixRegressionCommand": "node --test tests/hash1536_contract.test.js",
+    "preFixRegressionExitCode": 1,
+    "preFixRegressionResult": "10 passed, 1 failed; sparse geometry reference was accepted by the old implementation.",
     "focusedCommand": "node --experimental-test-coverage --test-coverage-include=src/hash1536_contract.js --test tests/hash1536_contract.test.js",
-    "focusedResult": "8 passed, 0 failed; src/hash1536_contract.js: 100% line, branch, and function coverage.",
+    "focusedExitCode": 0,
+    "focusedResult": "11 passed, 0 failed; src/hash1536_contract.js: 100% line, branch, and function coverage.",
     "existingSuiteCommand": "npm test",
-    "existingSuiteResult": "88 passed, 0 failed.",
+    "existingSuiteExitCode": 0,
+    "existingSuiteResult": "91 passed, 0 failed.",
     "runtimeVersions": {
       "node": "v24.21.0",
       "npm": "11.19.0",
       "python": "3.12.3"
     },
-    "scope": "Validator only; not full invariant-engine coverage. No Python suite, type-checker, deployed service, or physical control was run."
+    "scope": "Coverage is validator-only, not full invariant-engine coverage. No Python suite, type-checker, deployed service, or physical control was run."
   },
   "blockers": [
     "Role evidence, measurements and units, source-channel mapping, trusted qualification, receipts, agreement criteria, and calibration remain unresolved.",
     "The two extensions are type declarations only.",
-    "Live gate remains CLOSED; no deployment was checked.",
+    "Live gate remains CLOSED. No deployment was initiated by the repair task; actual preview/deployment status is unverified, and an automatic preview is not ruled out.",
     "GitHub Actions runs 38809903228 and 38809903111 were action_required with zero jobs, so CI build status is unknown.",
     "The automated code-review component was unavailable; no independent review findings were produced."
   ],
-  "nextExecutableAction": "Report the verified bounded PR status and stop; do not deploy or enable live qualification."
+  "nextExecutableAction": "Commit evidence updates and report the verified repair; do not intentionally deploy or enable live qualification."
 }

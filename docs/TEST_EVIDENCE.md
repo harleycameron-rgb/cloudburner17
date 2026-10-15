@@ -44,6 +44,42 @@ a successful or failed build; no CI job logs were available.
 No Python suite, type-checker, deployment, or live service was run for this
 change.
 
+## Sparse-reference repair verification
+
+Repair commit: `9c0365a7b13957c0d6cc7d18a74c73e0612d93bf`.
+
+Before changing the validator, the new regression tests were run against the
+old implementation:
+
+```sh
+node --test tests/hash1536_contract.test.js
+```
+
+Exit code: **1**; **10 passed, 1 failed**. The sparse-geometry test failed
+because the validator accepted a reference with a missing own coordinate,
+including when that coordinate was inherited from a local array prototype.
+This was an intentional regression demonstration.
+
+After the fix, the focused command was:
+
+```sh
+node --experimental-test-coverage --test-coverage-include=src/hash1536_contract.js --test tests/hash1536_contract.test.js
+```
+
+Exit code: **0**; **11 passed, 0 failed**. The validator-only coverage report
+was **100.00% line, 100.00% branch, and 100.00% function coverage**.
+
+The audited existing JavaScript suite was then run:
+
+```sh
+npm test
+```
+
+Exit code: **0**; **91 passed, 0 failed**. The audit found no deployed-service
+calls; existing local simulated lifecycle and subprocess tests remain part of
+the suite. Runtime versions for these commands: Node.js `v24.21.0`, npm
+`11.19.0`, Python `3.12.3`.
+
 ## Parallel validation
 
 CodeQL JavaScript analysis completed with **0 alerts**. The automated code

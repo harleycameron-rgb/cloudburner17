@@ -2,6 +2,8 @@
 
 - The live gate remains **CLOSED**. No launch is authorized by this readiness
   validator.
+- No deployment was initiated by the repair task. Actual preview/deployment
+  status is unverified; an automatic preview is not ruled out.
 - Evidence for each of the six role identities, any measurements and their
   units, and the event's actual readiness is unresolved.
 - No mapping from the existing eight SCANDOC channels to the six launch roles
