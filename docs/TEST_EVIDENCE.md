@@ -43,3 +43,9 @@ a successful or failed build; no CI job logs were available.
 
 No Python suite, type-checker, deployment, or live service was run for this
 change.
+
+## Parallel validation
+
+CodeQL JavaScript analysis completed with **0 alerts**. The automated code
+review component reported no comments but was unavailable because its review
+binary was not present; this is not an independent code-review result.

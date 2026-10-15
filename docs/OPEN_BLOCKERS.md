@@ -13,6 +13,8 @@
 - The focused coverage result applies only to `src/hash1536_contract.js`.
 - Recent Actions runs were `action_required` with zero jobs; build status is
   therefore unknown.
+- The automated code-review component was unavailable in this environment;
+  no independent review findings were produced.
 
 Do not enable the live gate or represent this contract as qualification,
 deployment, or full invariant-engine coverage.
