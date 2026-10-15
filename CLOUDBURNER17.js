@@ -61,3 +61,7 @@ export {
   verifySphereShifts,
   gateSymbolSVG,
 } from "./src/sphere_shift_gate.js";
+export {
+  LAUNCH_ROLES,
+  validateHash1536Readiness,
+} from "./src/hash1536_contract.js";
