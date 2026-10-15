@@ -35,7 +35,10 @@ never the audio destination.
   guard, serves `/live-feedback[/]` and only the two `.mjs` assets with
   `text/javascript` and `nosniff`; CSP blocks network connections.
 - `backend/main.py`: includes the page router and links from the actual `/` UI;
-  `frontend/index.html` also links, but is not the backend's root entrypoint.
+  the root handler is async to avoid lazy threadpool imports after the guard.
+  Endpoint source is cached before startup's guard because current FastAPI
+  lazily inspects it on first request. `frontend/index.html` also links, but is
+  not the backend's root entrypoint.
 - `vercel.json`: relocated from `backend/vercel.json` to the repository root;
   keeps SCANDOC and the main fallback, adds an engine-free live-feedback function.
   Explicit source includes preserve sibling `src/` imports, page assets and
@@ -49,6 +52,60 @@ The existing Dockerfile already copies `backend/`, `src/` and `package.json`,
 so no container packaging change is needed. The Vercel archive tests verify
 `admission` comes from the copied `src/` under both Python import styles, not
 the development checkout. They do **not** prove a Vercel deployment is healthy.
+
+## Executed validation
+
+Commands ran from the repository root with Node v24.21.0 and Python 3.12.
+Python dependencies were installed only in `/tmp/cloudburner17-test-venv`;
+no test requests went to production. Exact setup:
+
+```sh
+python -m venv /tmp/cloudburner17-test-venv
+/tmp/cloudburner17-test-venv/bin/pip install -r /home/runner/work/cloudburner17/cloudburner17/backend/requirements.txt pytest==9.1.1 httpx==0.28.1
+```
+
+| Command | Actual result |
+| --- | --- |
+| `node --test backend/live_feedback/model.test.mjs` | 8 passed (original model tests) |
+| `node --test tests/live_feedback_page.test.js` | 21 passed (browser-API/DOM stubs, including permission/playback races) |
+| `npm test` | 101 passed, including the 21 lifecycle tests |
+| `npm run test:typescript` | 4 passed |
+| `PYTHONDONTWRITEBYTECODE=1 /tmp/cloudburner17-test-venv/bin/python -B -m pytest -p no:cacheprovider backend/tests -q` | 13 passed, including 6 new route/packaging/guard tests |
+| `PYTHONDONTWRITEBYTECODE=1 /tmp/cloudburner17-test-venv/bin/python -B -m unittest discover -s tests -v` | 51 passed |
+| `git diff --check` | Passed |
+
+The Python environment resolved FastAPI 0.143.2 and Uvicorn 0.54.0 from the
+existing unpinned requirements. There is one framework deprecation warning:
+Starlette's TestClient deprecates `httpx` in favour of `httpx2`. No replacement
+test dependency was added. Initial browser validation exposed the root's lazy
+threadpool import failure; the async root handler fixes it. The expanded test
+also exposed lazy FastAPI source reads; startup source caching fixes these
+without relaxing the filesystem guard. All final backend tests pass.
+
+Local browser acceptance used the app with lifespan enabled:
+
+```sh
+PYTHONDONTWRITEBYTECODE=1 /tmp/cloudburner17-test-venv/bin/python -B -m uvicorn backend.main:app --host 127.0.0.1 --port 8000 --no-access-log --log-level critical
+chromium --headless --no-sandbox --disable-gpu --remote-debugging-port=9222 --remote-debugging-address=127.0.0.1 --user-data-dir=/tmp/cloudburner17-browser --use-fake-device-for-media-stream --use-fake-ui-for-media-stream about:blank
+```
+
+An inline `node --input-type=module` DevTools-protocol session (no added browser
+library) drove navigation and user-activated clicks, and inspected network,
+tracks, audio contexts and canvas pixels. Passed: root link, both URL forms,
+local module loading, all six labels, no automatic device start, three Start/Stop
+cycles, nonempty live frames then fully cleared pixels, ended tracks, closed audio
+contexts, pagehide cleanup and no automatic restart after navigation. No JavaScript
+exceptions, external/JPEG requests, or actuation requests were observed.
+An initial synthetic click lacked browser user activation and suspended audio;
+the acceptance run supplied user activation, as a real Start click does.
+This uses **synthetic Chromium devices, not physical camera/microphone hardware**.
+The Playwright tool transport was unavailable; Chromium was exercised directly.
+
+GitHub Actions inspection found the source-commit container and zero-data runs
+successful; the container run `38753312761` had no failed-job logs.
+The initial PR runs required approval. No workflows were retried or approval
+gates bypassed. A container/Vercel build was not run here and no deployment
+was made; source-archive tests and local runtime checks are reported separately.
 
 ## Manual browser acceptance (target hardware still required)
 

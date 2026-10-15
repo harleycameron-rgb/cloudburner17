@@ -60,8 +60,27 @@ from backend.live_feedback_page import live_feedback, live_feedback_asset
 from backend.scandoc_page import scandoc
 from zero_data import assert_no_file_io
 
+async def request(path):
+    messages = []
+    async def receive():
+        return {"type": "http.request", "body": b"", "more_body": False}
+    async def send(message):
+        messages.append(message)
+    await app({
+        "type": "http", "asgi": {"version": "3.0"}, "http_version": "1.1",
+        "method": "GET", "scheme": "http", "path": path, "raw_path": path.encode(),
+        "query_string": b"", "root_path": "", "headers": [],
+        "client": ("127.0.0.1", 1234), "server": ("127.0.0.1", 8000),
+    }, receive, send)
+    assert messages[0]["status"] == 200, messages
+    return b"".join(message.get("body", b"") for message in messages)
+
 async def check():
     async with lifespan(app):
+        assert b'href="/live-feedback"' in await request("/")
+        for path in ("/live-feedback", "/live-feedback/", "/live-feedback/live.mjs",
+                     "/live-feedback/model.mjs", "/runtime", "/scandoc"):
+            await request(path)
         assert (await live_feedback()).status_code == 200
         assert (await live_feedback_asset("live.mjs")).media_type == "text/javascript"
         assert (await live_feedback_asset("model.mjs")).status_code == 200

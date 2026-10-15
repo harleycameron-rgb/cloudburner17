@@ -1,4 +1,5 @@
 import asyncio
+import inspect
 import json
 import os
 import shutil
@@ -35,6 +36,12 @@ SPHERICAL_INPUT_LIMIT = 1024 * 1024
 @asynccontextmanager
 async def lifespan(app):
     global sup
+    # FastAPI may lazily inspect endpoint source when handling the first request.
+    # Populate Python's source cache before the filesystem guard is installed.
+    for route in (*app.routes, *scandoc_router.routes, *live_feedback_router.routes):
+        endpoint = getattr(route, "endpoint", None)
+        if endpoint is not None:
+            inspect.getsourcelines(endpoint)
     sup = Supervisor()
     sup.add_step(
         "burn",
@@ -76,7 +83,7 @@ async def tentacled_sphere(seed: float = 1.0, delta: float = 0.1137):
 
 
 @app.get("/", response_class=HTMLResponse)
-def frontend():
+async def frontend():
     return """<!doctype html>
 <html><head><meta charset="utf-8"><title>CLOUDBURNER17</title></head>
 <body><h1>CLOUDBURNER17 Supervisor</h1>
