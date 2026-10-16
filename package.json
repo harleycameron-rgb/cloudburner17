@@ -7,6 +7,10 @@
   },
   "scripts": {
     "test": "node --test tests/*.test.js",
+    "test:browser": "playwright test",
     "test:typescript": "node --experimental-strip-types --test verifyTimestampProof.test.ts"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.1"
   }
 }

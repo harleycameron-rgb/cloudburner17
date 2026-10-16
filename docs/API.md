@@ -5,6 +5,62 @@ are unchanged. SCANDOC does not call them or attach to their lifecycle.
 
 ## SCANDOC: local synthetic HTML sandbox
 
+### Reproducible browser acceptance
+
+From `/home/runner/work/cloudburner17/cloudburner17`, use Node.js 20+ (CI uses
+24) and Python 3.12. Browser tooling is separate from the existing `npm test`
+Node unit suite.
+
+```sh
+cd /home/runner/work/cloudburner17/cloudburner17
+python -m venv /tmp/scandoc-browser-venv
+. /tmp/scandoc-browser-venv/bin/activate
+python -m pip install -r /home/runner/work/cloudburner17/cloudburner17/tests/browser/requirements.txt
+npm ci
+npx playwright install --with-deps chromium
+
+# Full browser suite
+npm run test:browser
+# Single file
+npm run test:browser -- tests/browser/workflow.spec.js
+# Single test (exact title)
+npm run test:browser -- tests/browser/workflow.spec.js --grep 'exact next-state example is accepted only as an unverified forecast$'
+```
+
+The npm lockfile pins Playwright and its browser revision; the browser Python
+requirements pin FastAPI/Uvicorn without changing deployment dependencies.
+Linux browser system-library installation may require sudo. No app build or
+separate lint command is needed. The CI workflow uses these same commands.
+
+Playwright starts only `backend.scandoc_page:app` on `127.0.0.1:18002`, waits
+for `/scandoc`, and terminates the server on success or failure (SIGTERM, then
+forced termination after five seconds if needed). It refuses to reuse an
+existing server; free the port before running. One worker and zero retries
+keep failures visible. Native `backend.main`, Supervisor lifespan and lifecycle
+routes are never used by this browser suite.
+
+For an explicitly authorized **standalone sandbox origin**, set
+`SCANDOC_BASE_URL` to that origin before running the same command; this disables
+local server startup/ownership. For example, against a separately managed local
+instance: `SCANDOC_BASE_URL=http://127.0.0.1:18003 npm run test:browser`.
+No immutable preview URL is embedded. Do not target production or the legacy
+backend-root native deployment. Protected previews must be accessible through
+normal authorization; the suite adds no credentials or protection bypass.
+No external preview pass is implied by local results.
+
+Coverage includes initial disabled controls, browser navigation through the root
+redirect, asset MIME types, read-only OpenAPI routes, synthetic completion,
+nonempty canvas/text geometry, real JSON/CSV downloads with independently
+recomputed SHA-512 commitments, exact next-state forecast acceptance, policy
+and malformed/schema rejection, stale text/control/canvas invalidation and
+rerun recovery, and the non-interactive supervisor-unavailable notice.
+Every UI test fails on page errors, console errors or requests outside the
+allowlisted same-origin GET assets. Inputs and downloads are synthetic only.
+Traces/screenshots from failures live in ignored `test-results/`; inspect them
+locally with `npx playwright show-trace <trace.zip>`. They are not auto-uploaded.
+
+### Hosting boundary
+
 Open `/scandoc` (also `/scandoc/`) on the existing FastAPI application.
 `backend/vercel.json` routes `/scandoc` and its assets to the self-contained
 FastAPI `scandoc_page.py` function in the **existing** Vercel project's `backend`
