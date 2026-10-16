@@ -281,3 +281,23 @@ manifest and updated dependency-parity assertion: **9/9 passed, 0.44 s,
 exit 0**, with the same single TestClient deprecation warning.
 The HTTP handler, four assets, native runtime and council module were not
 changed by this correction.
+
+Corrected tested code commit: **`e2b321ca88e6588f91f75a81e26bf778ddcf2fd4`**.
+Fallback review of the corrected manifest: **no significant issues found**.
+Parallel validation rerun: **0 CodeQL Python alerts**; its model-dependent
+review subprocess remained unavailable. The latest documentation-only commit
+records these results without changing the tested code.
+
+Requested-project corrected deployment
+`6PH8es2oLeSJtuz167E2VBzfZrNc` was last observed pending at 13:51:28 UTC.
+The subsequent success at 13:51:39 UTC points to the different backend-root
+project (`6EbqhUzpbsxfn49JuBpctXZjDDQg`), not the requested root build.
+The following attempt to disambiguate status history failed:
+
+```sh
+curl --silent --show-error --fail --max-time 20 'https://api.github.com/repos/harleycameron-rgb/cloudburner17/commits/e2b321ca88e6588f91f75a81e26bf778ddcf2fd4/statuses?per_page=20' --output /tmp/cloudburner17-commit-statuses.json
+```
+
+HTTP **403**, curl **exit 22**. No external application GET smoke succeeded
+or is claimed. Corrected-commit Actions runs `38911106138` and `38911106426`
+were `action_required`; they are not local-test or remote-CI passes.

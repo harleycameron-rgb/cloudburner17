@@ -136,3 +136,29 @@ the earlier remote failure's cause without its logs.
 15 packages resolved, exit 0, no repository lockfile or environment created.
 The nine backend/configuration tests passed again with socket connections
 blocked (exit 0). Full command evidence is in TEST_EVIDENCE.md.
+
+### Corrected code checkpoint
+
+Corrected tested code commit: **`e2b321ca88e6588f91f75a81e26bf778ddcf2fd4`**.
+The fallback reviewer rechecked the correction and reported no significant
+issues. Parallel validation was rerun: zero CodeQL Python alerts; its separate
+review subprocess still could not initialize its configured model.
+
+At 13:51:28 UTC the requested project's GitHub status was **pending**,
+“Vercel is deploying your app”, for
+<https://vercel.com/waxtablet/cloudburner17/6PH8es2oLeSJtuz167E2VBzfZrNc>.
+At 13:51:39 UTC the identically named status context instead showed success
+for the **other backend-root project**, deployment
+`6EbqhUzpbsxfn49JuBpctXZjDDQg`; its bot table was updated at 13:51:42 UTC.
+That overwrites the visible combined status, so the requested project's
+corrected build outcome is **unknown**, not proven failed or successful.
+Unauthenticated GitHub status-history retrieval returned HTTP 403 (curl exit 22).
+No requested-project preview URL or authorized external runtime response was
+obtained. The other project's READY preview remains unverified and is not a
+substitute for the requested project.
+
+Corrected-commit Actions runs `38911106138` (backend) and `38911106426`
+(zero-data) require approval (`action_required`). The pre-existing missing
+httpx CI issue remains a known separate blocker. Stop at this tested PR:
+next obtain the corrected requested-project build outcome/logs and an authorized
+protected-preview GET smoke. Do not promote, merge, or run live operations.

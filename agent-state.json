@@ -5,6 +5,7 @@
   "initial_checkout_sha": "58251d51b1e917ec4722af533ee6063bafa1ba3d",
   "initial_worktree_clean": true,
   "first_repair_attempt_sha": "d0bf92a6f7d7c56343aac08561fa0b47e09ab765",
+  "tested_code_sha": "e2b321ca88e6588f91f75a81e26bf778ddcf2fd4",
   "manifest_correction": "Valid project metadata and existing fastapi/uvicorn dependencies; redundant root requirements removed",
   "entrypoint": "backend.scandoc_page:app",
   "scope": "Existing synthetic sandbox only; no native, daemon, six-app, original six-leg prototype, time-axis or council API integration",
@@ -25,13 +26,15 @@
   "preview": {
     "project_id": "prj_BvHWk06AfoyC9qsuqaLwg4VHj5ib",
     "team_id": "team_FvvGW28W3COeiV8AqQKY3ZA3",
-    "state": "requested_project_git_linked_repair_build_failed",
-    "deployment_id": "dpl_3sGQLubZ3sJCjPGUVwCGu6sKrU58",
-    "build_logs": "Unavailable: dashboard/API DNS resolution failed; browser transport closed",
+    "state": "corrected_requested_project_last_observed_pending; final_outcome_unknown",
+    "deployment_id": "dpl_6PH8es2oLeSJtuz167E2VBzfZrNc",
+    "initial_repair_failed_deployment": "dpl_3sGQLubZ3sJCjPGUVwCGu6sKrU58",
+    "build_logs": "Not obtained: Vercel dashboard/API DNS failed; browser transport closed; GitHub status history HTTP 403",
     "externally_verified": false,
     "url": null,
     "other_project_ready": {
       "project_id": "prj_WZlBVbIMYdypNKKVvfhr7HFzwHA9",
+      "deployment_id": "dpl_6EbqhUzpbsxfn49JuBpctXZjDDQg",
       "root_directory": "backend",
       "url": "https://cloudburner17-git-copilot-create-bounded-02f35d-scandoc-sphere.vercel.app",
       "externally_verified": false,
@@ -41,10 +44,11 @@
   "validation": {
     "codeql_python_alerts": 0,
     "parallel_code_review": "Unavailable model; not a completed review",
+    "fallback_read_only_review": "Manifest defect fixed; correction re-reviewed with no significant issues",
     "secret_scan": "No secrets detected"
   },
   "blockers": [
-    "Obtain authorized build logs for requested project's failed repair deployment; cause unknown",
+    "Obtain corrected requested-project build outcome/logs; last observed pending before another project's status overwrote it",
     "Successful requested-project protected preview build and authorized external GET smoke remain unverified",
     "Pre-existing zero-data CI workflow lacks httpx for council test discovery"
   ],
