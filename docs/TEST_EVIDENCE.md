@@ -1,5 +1,71 @@
 # Test evidence
 
+## Current-main merge-resolution verification — 2026-10-16
+
+The verified source tree combined PR head `6348c02b879b336f72b44159133f7e3c65728116`
+with fetched `main` at `821a32d8484714aa8bcbb5c7427ab88aa347d6b6`, using merge
+base `f18e32ad41333c44cc53b3fc42009df3e0a0abf8`. It was committed as the
+two-parent merge `a43f772ccbccb88b0be7e569f91ccce8f03a2775` with tree
+`edb44ee2ab5c8d5ffeb7f388e6c7c48c79d363ce`. Runtime versions were Node.js
+`v24.21.0`, npm `11.19.0`, and Python `3.12.3`.
+
+Focused hash1536 contract command:
+
+```sh
+node --experimental-test-coverage --test-coverage-include=src/hash1536_contract.js --test tests/hash1536_contract.test.js
+```
+
+Exit **0**; **11 passed, 0 failed**. Validator-only line, branch, and function
+coverage was **100.00%**. This does not represent full invariant-engine coverage.
+
+Focused SCANDOC model/page regression command:
+
+```sh
+node --test tests/scandoc.test.js tests/scandoc_page.test.js
+```
+
+Exit **0**; **9 passed, 0 failed**.
+
+Complete existing JavaScript suite:
+
+```sh
+npm test
+```
+
+Exit **0**; **91 passed, 0 failed**. Existing lifecycle/shift coverage exercises
+local synthetic scenarios; no deployed service, physical control, or external
+model was called.
+
+Backend tests were attempted:
+
+```sh
+python -m pytest backend/tests/test_preview_config.py backend/tests/test_scandoc.py
+```
+
+Exit **1** with `/usr/bin/python: No module named pytest`. The environment probe
+also found FastAPI, httpx, uvicorn, and Playwright unavailable. No dependencies
+were installed for this merge update.
+
+There is no Playwright/browser configuration, browser test file, or browser
+script in the fetched `main` tree or merged checkout. GitHub Actions logs for
+run `38942400732` show eight browser tests passing on the separate
+`copilot/repair-scandoc-sandbox` branch at `7fdabe59b8e431acd7532bf0ca94cdcd86da8981`.
+That is historical evidence from another branch, not a browser test of this
+merge tree. The merged tree's local browser suite was therefore unavailable.
+
+Remote CI evidence was also inspected through Actions job logs:
+
+- At fetched current-main SHA `821a32d8484714aa8bcbb5c7427ab88aa347d6b6`,
+  Zero-data run `38940517619` and Backend container run `38940517609` both
+  completed successfully. The Zero-data job installed `httpx`; the container
+  job built the image and verified Node.js 20.19.2.
+- Earlier run `38940591380` on branch `copilot/create-bounded-repair-pr` at
+  `376e75a083fb5d5947cf9bb0f253d59b292c0ab2` failed test discovery because
+  `httpx` was missing. The subsequent success on current `main` is a different
+  source SHA and includes the dependency installation.
+- These Actions runs predate and do not test the merged PR tree. No workflow
+  result for the merge-resolution commit is claimed.
+
 ## Historical hash1536 readiness PR evidence (before merging current main)
 
 These results apply to the PR branch before the current-main merge; they are

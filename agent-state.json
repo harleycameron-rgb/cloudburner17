@@ -13,24 +13,50 @@
       "docs/DEPLOYMENT_STATUS.md",
       "docs/TEST_EVIDENCE.md"
     ],
-    "mergeCommit": null,
-    "githubMergeability": "not checked after conflict resolution"
+    "mergeCommit": "a43f772ccbccb88b0be7e569f91ccce8f03a2775",
+    "mergeTree": "edb44ee2ab5c8d5ffeb7f388e6c7c48c79d363ce",
+    "githubMergeability": "PR was unstable after merge commit; refresh after evidence update"
   },
   "completedTasks": [
     "Fetched the actual current origin/main ref and verified its SHA.",
     "Progressively deepened shallow history and established merge base f18e32ad41333c44cc53b3fc42009df3e0a0abf8.",
     "Started a genuine three-way merge; both workstreams and their checkpoint/test histories are retained below and in shared docs.",
-    "Kept six launch roles distinct from the two extension types; qualification is unresolved and unauthorized; liveGate remains CLOSED."
+    "Committed a true two-parent merge into the existing PR branch; current main's SCANDOC and CI repairs remain present.",
+    "Kept six launch roles distinct from the two extension types; qualification is unresolved and unauthorized; liveGate remains CLOSED.",
+    "Ran merged-tree focused contract, SCANDOC Node regressions, and full JavaScript tests; results are recorded below and in docs/TEST_EVIDENCE.md."
   ],
   "pendingTasks": [
-    "Run focused hash1536 tests with line/branch coverage.",
-    "Run safe JavaScript, Python, and available browser regressions; record unavailable dependencies or browser infrastructure honestly.",
-    "Verify no conflict markers remain, confirm merge commit has two parents, and check GitHub PR mergeability."
+    "Refresh GitHub PR mergeability after the evidence update."
   ],
-  "lastVerifiedSourceCommit": "6348c02b879b336f72b44159133f7e3c65728116",
+  "lastVerifiedSourceCommit": "a43f772ccbccb88b0be7e569f91ccce8f03a2775",
   "lastVerifiedDeployment": null,
   "testResults": {
-    "mergeResolution": "Pending validation against the merged tree.",
+    "mergeResolution": {
+      "focusedCommand": "node --experimental-test-coverage --test-coverage-include=src/hash1536_contract.js --test tests/hash1536_contract.test.js",
+      "focusedExitCode": 0,
+      "focusedResult": "11 passed, 0 failed; validator-only line, branch, and function coverage 100%.",
+      "scandocCommand": "node --test tests/scandoc.test.js tests/scandoc_page.test.js",
+      "scandocExitCode": 0,
+      "scandocResult": "9 passed, 0 failed.",
+      "completeJavascriptCommand": "npm test",
+      "completeJavascriptExitCode": 0,
+      "completeJavascriptResult": "91 passed, 0 failed.",
+      "backendCommand": "python -m pytest backend/tests/test_preview_config.py backend/tests/test_scandoc.py",
+      "backendExitCode": 1,
+      "backendResult": "Blocked: /usr/bin/python: No module named pytest. FastAPI, httpx, uvicorn, and Playwright were also unavailable; no dependencies were installed.",
+      "browserTests": "No Playwright configuration or browser tests exist in fetched main/merged checkout. GitHub run 38942400732 passed 8 browser tests on separate branch copilot/repair-scandoc-sandbox at 7fdabe59b8e431acd7532bf0ca94cdcd86da8981; not evidence for this merge tree.",
+      "remoteCI": {
+        "currentMainZeroData": {"run": "38940517619", "sha": "821a32d8484714aa8bcbb5c7427ab88aa347d6b6", "result": "success"},
+        "currentMainBackendContainer": {"run": "38940517609", "sha": "821a32d8484714aa8bcbb5c7427ab88aa347d6b6", "result": "success"},
+        "historicalMissingHttpxFailure": {"run": "38940591380", "sha": "376e75a083fb5d5947cf9bb0f253d59b292c0ab2", "result": "failure; httpx missing during discovery"},
+        "mergedTreeCI": "No workflow result for the merge-resolution commit is claimed."
+      },
+      "runtimeVersions": {
+        "node": "v24.21.0",
+        "npm": "11.19.0",
+        "python": "3.12.3"
+      }
+    },
     "hash1536ReadinessPRHistorical": {
       "preFixRegressionCommand": "node --test tests/hash1536_contract.test.js",
       "preFixRegressionExitCode": 1,
@@ -50,9 +76,9 @@
   },
   "blockers": [
     "Actual preview status for the current PR head is unverified; no deployment was initiated by this merge task.",
-    "Local pytest, FastAPI, httpx, uvicorn, and Playwright packages are currently unavailable; browser test infrastructure has not yet been found."
+    "Local backend tests were blocked by absent pytest/FastAPI/httpx/uvicorn; no Playwright configuration or browser suite exists in fetched main/merged checkout."
   ],
-  "nextExecutableAction": "Run safe focused and regression tests against the merged tree; do not promote deployments, enable live qualification, or merge the PR.",
+  "nextExecutableAction": "Refresh PR mergeability, report the merge commit SHA and test blockers, then stop without approving or merging the PR.",
   "historicalWorkstreamCheckpoints": {
     "hash1536ReadinessPR": {
       "currentTask": "Repair sparse geometry validation on the existing hash1536 readiness PR.",
