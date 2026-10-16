@@ -4,6 +4,8 @@
   "baseline_sha": "319a7df1283b6a266a8a9ce6ddd7f42e405c55b9",
   "initial_checkout_sha": "58251d51b1e917ec4722af533ee6063bafa1ba3d",
   "initial_worktree_clean": true,
+  "first_repair_attempt_sha": "d0bf92a6f7d7c56343aac08561fa0b47e09ab765",
+  "manifest_correction": "Valid project metadata and existing fastapi/uvicorn dependencies; redundant root requirements removed",
   "entrypoint": "backend.scandoc_page:app",
   "scope": "Existing synthetic sandbox only; no native, daemon, six-app, original six-leg prototype, time-axis or council API integration",
   "native_and_council_source_unchanged": true,
@@ -17,17 +19,33 @@
     "all_python_socket_blocked": {"passed": 58, "failed": 0, "exit_code": 0},
     "local_http_get_checks": {"passed": 14, "failed": 0, "exit_code": 0}
   },
+  "packaging_validation": {"tool": "uv 0.13.1 lock --dry-run", "resolved_packages": 15, "exit_code": 0},
   "network_isolation": "Workflow-equivalent Python socket patches; OS network namespace unavailable; audited local subprocesses do not inherit patches",
   "council_inference_calls": 0,
   "preview": {
     "project_id": "prj_BvHWk06AfoyC9qsuqaLwg4VHj5ib",
     "team_id": "team_FvvGW28W3COeiV8AqQKY3ZA3",
-    "state": "initial_git_linked_build_error; repair_not_yet_observed",
+    "state": "requested_project_git_linked_repair_build_failed",
+    "deployment_id": "dpl_3sGQLubZ3sJCjPGUVwCGu6sKrU58",
+    "build_logs": "Unavailable: dashboard/API DNS resolution failed; browser transport closed",
     "externally_verified": false,
-    "url": null
+    "url": null,
+    "other_project_ready": {
+      "project_id": "prj_WZlBVbIMYdypNKKVvfhr7HFzwHA9",
+      "root_directory": "backend",
+      "url": "https://cloudburner17-git-copilot-create-bounded-02f35d-scandoc-sphere.vercel.app",
+      "externally_verified": false,
+      "used_as_substitute": false
+    }
+  },
+  "validation": {
+    "codeql_python_alerts": 0,
+    "parallel_code_review": "Unavailable model; not a completed review",
+    "secret_scan": "No secrets detected"
   },
   "blockers": [
-    "Observe repaired existing protected Git-linked preview build and authorized external GET smoke",
+    "Obtain authorized build logs for requested project's failed repair deployment; cause unknown",
+    "Successful requested-project protected preview build and authorized external GET smoke remain unverified",
     "Pre-existing zero-data CI workflow lacks httpx for council test discovery"
   ],
   "evidence": ["docs/DEPLOYMENT_STATUS.md", "docs/TEST_EVIDENCE.md"],

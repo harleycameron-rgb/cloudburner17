@@ -15,8 +15,9 @@
   updated 2026-10-16 13:40:31 UTC, with no preview URL and rootDirectory null.
 
 Root `pyproject.toml` explicitly selects **`backend.scandoc_page:app`**.
-Root `requirements.txt` delegates to the existing backend requirements; root
-`vercel.json` explicitly includes `backend/scandoc/**` (index.html, app.js,
+Its `[project]` metadata declares the same `fastapi` and `uvicorn` dependencies
+as the unchanged backend requirements; root `vercel.json` explicitly includes
+`backend/scandoc/**` (index.html, app.js,
 model.js, style.css). There is no replacement animation, runtime adapter, or
 geometry change. The standalone app now redirects `/` to `/scandoc`; the
 native app's root is unchanged. All four existing assets remain preloaded.
@@ -84,3 +85,54 @@ Complete daemon/six-app/time-axis integration and actual multi-model inference
 remain separate work. No project creation, protection changes, credentials,
 DNS changes, promotion, merge, live launch/burn/shift/supervision, council
 requests, or paid infrastructure expansion were performed.
+
+## Post-push evidence
+
+First repair attempt: `d0bf92a6f7d7c56343aac08561fa0b47e09ab765`.
+The subsequent manifest correction below supersedes its packaging.
+
+At 2026-10-16 13:46:43 UTC, GitHub's commit status for the **requested**
+project reported **failure** for `dpl_3sGQLubZ3sJCjPGUVwCGu6sKrU58`:
+<https://vercel.com/waxtablet/cloudburner17/3sGQLubZ3sJCjPGUVwCGu6sKrU58>.
+The status recommends `npx vercel inspect ... --logs`, but no Vercel CLI or
+authenticated Vercel tooling is available. Read-only dashboard retrieval failed
+DNS resolution; browser tooling returned `Transport closed`. A credential-free
+GET to the deployment events API also failed DNS (curl exit 6, HTTP 000).
+Consequently the **new build failure's cause is unknown**; it must not be
+assumed to be the historical entrypoint error or described as repaired remotely.
+
+At 13:46:48 UTC the Vercel bot replaced its table with a READY deployment in
+**another** existing project, `prj_WZlBVbIMYdypNKKVvfhr7HFzwHA9`, under
+`scandoc-sphere`, rooted at **backend**:
+<https://vercel.com/scandoc-sphere/cloudburner17/5y7TGc8t6HXXVeVQEQkfUHTS8dvu>.
+It advertises
+<https://cloudburner17-git-copilot-create-bounded-02f35d-scandoc-sphere.vercel.app>.
+This deployment does not exercise the repaired root configuration and uses the
+unchanged legacy routing. It was **not** used as a substitute preview or smoke
+tested; protection and runtime behavior are unverified. No project was created
+or modified by this agent.
+
+Thus there is **no externally verified first working synthetic preview**.
+The immediate next blocker is authorized build-log access for the requested
+project's failed Git-linked deployment, followed by a successful protected
+preview build and authorized GET smoke checks. No production action is needed.
+
+CodeQL reported **zero Python alerts**. The parallel code-review service could
+not initialize its configured model; its “no comments” output is not a completed
+review. A separate read-only review was requested as a fallback.
+Repair-commit Actions runs `38910481846` (backend) and `38910482007`
+(zero-data) were observed as `action_required`, not passing test runs.
+
+### Review-driven manifest correction
+
+The fallback reviewer identified that Vercel prioritizes `pyproject.toml` and
+runs `uv lock`: a tool-only TOML plus delegated requirements was insufficient.
+Added valid project name/version/Python compatibility and the existing backend
+dependency pair to the root manifest; removed the redundant root requirements
+file. This addresses a concrete local packaging defect, but is not proof of
+the earlier remote failure's cause without its logs.
+
+`uv 0.13.1` validated the corrected project using `uv lock --dry-run`:
+15 packages resolved, exit 0, no repository lockfile or environment created.
+The nine backend/configuration tests passed again with socket connections
+blocked (exit 0). Full command evidence is in TEST_EVIDENCE.md.

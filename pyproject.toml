@@ -1,2 +1,8 @@
+[project]
+name = "cloudburner17-preview"
+version = "0.0.0"
+requires-python = ">=3.11"
+dependencies = ["fastapi", "uvicorn"]
+
 [tool.vercel]
 entrypoint = "backend.scandoc_page:app"

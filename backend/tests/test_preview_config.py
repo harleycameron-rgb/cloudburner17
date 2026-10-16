@@ -15,7 +15,12 @@ def test_root_configuration_imports_only_standalone_entrypoint():
     assert entrypoint == "backend.scandoc_page:app"
     module, attribute = entrypoint.split(":")
     assert getattr(importlib.import_module(module), attribute) is app
-    assert (ROOT / "requirements.txt").read_text().strip() == "-r backend/requirements.txt"
+    assert config["project"]["name"] == "cloudburner17-preview"
+    assert config["project"]["version"] == "0.0.0"
+    assert config["project"]["requires-python"] == ">=3.11"
+    assert set(config["project"]["dependencies"]) == set(
+        (ROOT / "backend" / "requirements.txt").read_text().splitlines()
+    )
 
 
 def test_root_bundle_includes_all_preloaded_assets():
