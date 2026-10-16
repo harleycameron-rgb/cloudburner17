@@ -8,7 +8,7 @@ let stream=null,audio=null,source=null,analyser=null,samples=null,raf=0,epoch=0,
 IDS.forEach((id,i)=>{
   const label=document.createElement('label'),title=document.createElement('span'),input=document.createElement('input');
   title.textContent=id.toUpperCase(); input.type='range';input.min='0';input.max='1';input.step='.01';input.value='1';
-  input.setAttribute('aria-label',id+' synthetic load');input.addEventListener('input',()=>loads[i]=Number(input.value));
+  input.setAttribute('aria-label',id+' manual research input');input.addEventListener('input',()=>loads[i]=Number(input.value));
   label.append(title,input);$('loads').append(label);
 });
 function status(text){$('status').textContent=text+' Live engine gate CLOSED.';}
@@ -44,6 +44,7 @@ function draw(token){
 }
 async function start(){
   if(pending||stream)return;
+  if(document.hidden){status('Keep the page visible before starting devices.');return;}
   if(!window.isSecureContext||!navigator.mediaDevices?.getUserMedia){status('Use HTTPS or localhost with a supported browser.');return;}
   const AC=window.AudioContext||window.webkitAudioContext;
   if(!AC){status('Web Audio is unavailable.');return;}
@@ -54,11 +55,15 @@ async function start(){
     if(token!==epoch){void localAudio.close().catch(()=>{});return;}
     acquired=await navigator.mediaDevices.getUserMedia({video:{width:{ideal:640},height:{ideal:360}},audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:false}});
     if(token!==epoch){acquired.getTracks().forEach(t=>t.stop());return;}
-    stream=acquired;video.srcObject=stream;await video.play();
+    stream=acquired;
+    stream.getTracks().forEach(track=>{
+      track.addEventListener('ended',()=>{if(token===epoch)stop('Device disconnected or permission revoked.');},{once:true});
+    });
+    if(stream.getTracks().some(track=>track.readyState==='ended')){stop('Device disconnected before startup.');return;}
+    video.srcObject=stream;await video.play();
     if(token!==epoch)return;
     source=audio.createMediaStreamSource(stream);analyser=audio.createAnalyser();analyser.fftSize=1024;source.connect(analyser);
     samples=new Float32Array(analyser.fftSize);
-    stream.getTracks().forEach(track=>track.addEventListener('ended',()=>{if(token===epoch)stop('Device disconnected or permission revoked.');},{once:true}));
     pending=false;status('Live camera + microphone. Synthetic visual output; no speaker playback.');draw(token);
   }catch(error){
     acquired?.getTracks().forEach(t=>t.stop());

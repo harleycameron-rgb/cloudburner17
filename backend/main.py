@@ -1,4 +1,5 @@
 import asyncio
+import inspect
 import json
 import os
 import shutil
@@ -13,8 +14,10 @@ from fastapi.responses import HTMLResponse
 
 if __package__:
     from .scandoc_page import router as scandoc_router
+    from .live_feedback_page import router as live_feedback_router
 else:
     from scandoc_page import router as scandoc_router
+    from live_feedback_page import router as live_feedback_router
 
 from admission import evaluate_submission
 from supervisor import Supervisor
@@ -33,6 +36,12 @@ SPHERICAL_INPUT_LIMIT = 1024 * 1024
 @asynccontextmanager
 async def lifespan(app):
     global sup
+    # FastAPI may lazily inspect endpoint source when handling the first request.
+    # Populate Python's source cache before the filesystem guard is installed.
+    for route in (*app.routes, *scandoc_router.routes, *live_feedback_router.routes):
+        endpoint = getattr(route, "endpoint", None)
+        if endpoint is not None:
+            inspect.getsourcelines(endpoint)
     sup = Supervisor()
     sup.add_step(
         "burn",
@@ -54,6 +63,7 @@ async def lifespan(app):
 
 app = FastAPI(lifespan=lifespan)
 app.include_router(scandoc_router)
+app.include_router(live_feedback_router)
 
 
 @app.get("/runtime")
@@ -73,10 +83,11 @@ async def tentacled_sphere(seed: float = 1.0, delta: float = 0.1137):
 
 
 @app.get("/", response_class=HTMLResponse)
-def frontend():
+async def frontend():
     return """<!doctype html>
 <html><head><meta charset="utf-8"><title>CLOUDBURNER17</title></head>
 <body><h1>CLOUDBURNER17 Supervisor</h1>
+<p><a href="/live-feedback">Live feedback — isolated camera/microphone research prototype</a></p>
 <button onclick="run('burn')">Burn</button>
 <button onclick="run('ignite')">Ignite</button>
 <button onclick="run('residue')">Residue</button>

@@ -294,6 +294,58 @@ Symlinks and special files are not changed or followed. If repository
 inspection fails, no permissions are changed. Do not list directories unless
 you intend to make their regular files and directories writable by their owner.
 
+## Live-feedback research page
+
+The application UI is the inline Supervisor page served by `backend/main.py`
+at `/` (not the separate `frontend/index.html` template). Both now link to
+`/live-feedback`, also available at `/live-feedback/`. Its local ES modules
+are `/live-feedback/live.mjs` and `/live-feedback/model.mjs`; no CDN or JPEG
+is required. Existing Supervisor, admission, spherical and SCANDOC routes remain.
+
+This is synthetic camera-frame deformation driven by microphone RMS and six
+**manual research inputs**: TAP, SURFACE, GAIN, HABITAT, ENGINE, BUSINESS.
+It is not telemetry, AI inference, invariant evidence or engine actuation.
+Devices require explicit Start and browser permission; Stop, hidden pages,
+page exit, disconnects and errors clear frames and release media resources.
+There is no recording, upload, storage, or speaker connection. A pending browser
+permission prompt cannot be dismissed by JavaScript; a grant after cancellation
+is immediately released.
+
+See the [integration and acceptance notes](reference/builder-import/live-feedback/README.md)
+for the file map, privacy boundaries, test results and remaining gaps.
+Run locally from the repository root after installing `backend/requirements.txt`:
+
+```sh
+PYTHONDONTWRITEBYTECODE=1 uvicorn backend.main:app --host 127.0.0.1 --port 8000 --no-access-log
+```
+
+Open `http://localhost:8000/` and follow the Live feedback link. Do not use
+production actuation endpoints for testing.
+
+### Vercel packaging (review required; no deployment performed)
+
+The former `backend/vercel.json` is now **`vercel.json` at the repository root**.
+Build entrypoints and destinations are repository-relative. The main function
+explicitly includes `src/**`, both pages' assets, their router modules and
+`package.json`. `main.py` already adds its sibling `../src` relative to `__file__`
+to Python's import path; copying `admission.py` into `backend/` is not a fix.
+A backend-only source root omits that sibling tree, consistent with the observed
+`ModuleNotFoundError: admission`. Historical Vercel logs/artifacts were not
+available here, so the precise deployed archive is not confirmed.
+
+The repository-root configuration routes `/scandoc(/.*)?` to its existing
+standalone function, `/live-feedback(/.*)?` to an engine-free function, and
+everything else to `backend/main.py`. The preview route and local app use the
+same preloaded allowlisted assets, with JavaScript MIME types. No request-time
+filesystem reads are needed under the zero-data guard.
+
+**Prerequisite for a future approved Vercel deployment:** the project source root
+must expose the repository root, not only `backend/`. Do not apply this config
+with a backend-only root. No project settings were changed in this PR. Source
+archive import tests are not a Vercel build or runtime-health check. In particular,
+the existing spherical endpoint still requires Node.js >=18 in the Python
+function environment; bundling its sources does not provision Node.
+
 ## Container deployment
 
 Build from the repository root so the Dockerfile can copy both `backend/` and
