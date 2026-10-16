@@ -15,6 +15,7 @@ function setPending(value) {
 function invalidate(error) {
   demo = undefined;
   controller = undefined;
+  $("view").getContext("2d")?.clearRect(0, 0, 900, 420);
   $("status").textContent = `${error.code ?? "INVALID_INPUT"}: ${error.message}. Previous displayed results are STALE; rerun the local demo.`;
   $("summary").textContent = "STALE — no current export or proposal context.";
   $("geometry-data").textContent = "STALE — geometry from the prior run is not current.";
@@ -98,6 +99,7 @@ $("demo").addEventListener("click", async () => {
   demo = undefined;
   controller = undefined;
   setPending(true);
+  $("view").getContext("2d")?.clearRect(0, 0, 900, 420);
   $("status").textContent = "Local work pending; previous results are STALE.";
   $("summary").textContent = "STALE — generating a new synthetic run.";
   $("geometry-data").textContent = "STALE — waiting for current geometry.";

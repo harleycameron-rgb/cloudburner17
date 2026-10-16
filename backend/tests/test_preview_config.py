@@ -1,12 +1,24 @@
 import importlib
 import json
 from pathlib import Path
+import subprocess
+import sys
 import tomllib
 
 from backend.scandoc_page import ASSETS, app
 
 
 ROOT = Path(__file__).resolve().parents[2]
+
+
+def test_standalone_import_does_not_load_native_runtime():
+    subprocess.run(
+        [sys.executable, "-B", "-c",
+         "import sys; import backend.scandoc_page; "
+         "assert 'backend.main' not in sys.modules; "
+         "assert not any(m == 'src' or m.startswith('src.') for m in sys.modules)"],
+        cwd=ROOT, check=True,
+    )
 
 
 def test_root_configuration_imports_only_standalone_entrypoint():

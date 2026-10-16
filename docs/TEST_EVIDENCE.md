@@ -301,3 +301,104 @@ curl --silent --show-error --fail --max-time 20 'https://api.github.com/repos/ha
 HTTP **403**, curl **exit 22**. No external application GET smoke succeeded
 or is claimed. Corrected-commit Actions runs `38911106138` and `38911106426`
 were `action_required`; they are not local-test or remote-CI passes.
+
+## Bounded browser acceptance increment — 2026-10-16
+
+Started on the clean `copilot/repair-scandoc-sandbox` branch at
+`fed0dea1a59bb8c7a58fd99af3ee3c748b758b33`, retaining repair
+`6a2a044` and its unchanged, non-interactive supervisor-unavailable notice.
+Tested implementation: **`678ffd886e8586f0cbbcf83d1aed412b195b540e`**.
+This section supersedes no historical remote deployment evidence above.
+
+### Installation and executed commands
+
+Working directory: `/home/runner/work/cloudburner17/cloudburner17`.
+Node **24.21.0**, npm **11.19.0**, Python **3.12.3**,
+Playwright **1.64.1**, Chromium **156.0.8078.4** (revision **1248**).
+
+```sh
+cd /home/runner/work/cloudburner17/cloudburner17
+npm install --save-dev --save-exact @playwright/test@1.64.1
+python -m venv /tmp/scandoc-browser-venv
+/tmp/scandoc-browser-venv/bin/python -m pip install --disable-pip-version-check fastapi==0.143.2 uvicorn==0.54.0 pytest==9.1.1 httpx==0.28.1
+npx playwright install --with-deps chromium
+# Verify the committed install instructions and lockfile:
+/tmp/scandoc-browser-venv/bin/python -m pip install --disable-pip-version-check -r /home/runner/work/cloudburner17/cloudburner17/tests/browser/requirements.txt
+npm ci
+```
+
+All completed successfully; npm audit and explicit package advisory checks
+reported no vulnerabilities. The venv and browser binaries are outside the
+repository; `node_modules/` and `test-results/` are ignored.
+Use [API.md](API.md#reproducible-browser-acceptance) for full, single-file,
+single-test and explicit-target instructions.
+
+With `PATH=/tmp/scandoc-browser-venv/bin:$PATH` for managed browser commands:
+
+| Executed command | Actual result |
+| --- | --- |
+| `node --test tests/scandoc.test.js tests/scandoc_page.test.js` (initial focused run) | 9 passed |
+| `PYTHONDONTWRITEBYTECODE=1 /tmp/scandoc-browser-venv/bin/python -B -m pytest -p no:cacheprovider backend/tests/test_preview_config.py -v` | 3 passed, including fresh-process native-import isolation |
+| `npm run test:browser -- tests/browser/workflow.spec.js` (before canvas fix) | 3 passed, 3 failed: stale canvas still painted after rejection |
+| `npm run test:browser` (after fix; repeated after `npm ci`) | 8 passed, 0 failed/skipped, final run 4.7 s |
+| `npm run test:browser -- tests/browser/workflow.spec.js` (after fix) | 6 passed |
+| `npm run test:browser -- tests/browser/workflow.spec.js --grep 'exact next-state example is accepted only as an unverified forecast$'` | 1 passed |
+| `npm test` | 80 passed |
+| `npm run test:typescript` | 4 passed |
+| Backend socket-blocked pytest command in “Backend/configuration tests” above, using this venv | 10 passed; 1 existing Starlette TestClient deprecation warning |
+| Root socket-blocked unittest command in “Existing sandbox and complete regressions” above, using this venv | 58 passed |
+| `SCANDOC_BASE_URL=http://127.0.0.1:18003 npm run test:browser` against a separately managed local standalone server | 8 passed; target still HTTP 200 afterward, then explicitly stopped |
+| `git diff --check` | Exit 0 |
+
+All successful test commands exited 0. An initial single-test filter anchored
+with `^` selected **no tests**, exit 1; it was corrected because Playwright
+matches file-prefixed titles. Only the corrected executed command is documented
+as passing. These filtered/repeated runs are not additional unique coverage.
+
+The browser suite uses real Chromium, local HTTP, actual download events/files
+and independently recomputed JSON/CSV commitments. Every UI case checks for
+uncaught page errors, console errors and unexpected outgoing requests. The
+policy-negative case changes only a positive finite radius (0.75 to 0.76) and
+asserts `POLICY_REJECTION`, distinct from malformed JSON/schema rejection.
+The only production change clears the canvas on invalidation and rerun start.
+The full suite exercises recovery to a new deterministic run and a subsequent
+accepted but unverified forecast with `transitionAuthorized: false`.
+
+Managed Uvicorn startup and SIGTERM shutdown were observed on passing and
+failing runs; HTTP on port 18002 was unavailable afterward. A separate
+collision check started the standalone app on that port and ran
+`npm run test:browser -- tests/browser/safety.spec.js`: Playwright correctly
+exited 1 with “already used”, executing **no browser tests** and leaving that
+server alive. The check's EXIT trap then stopped it.
+
+Only `backend.scandoc_page:app` was served. Existing regression suites use
+in-memory/native fixtures and mocked processes, not live native hosting.
+No physical firing, native supervisor server/lifespan, external model call,
+production promotion or merge was performed. Synthetic labels, disabled
+transmission, unresolved physical evidence/origin receipts and forbidden
+lifecycle transitions remain intact.
+
+### Review, CI and broader backlog
+
+Secret scanning of all 12 implementation files found no secrets.
+Parallel validation found **0 CodeQL alerts** across Actions, Python and
+JavaScript. Its separate code-review binary was unavailable; that component
+is **not** counted as a completed review.
+A separate read-only code-review agent reviewed implementation commit
+`678ffd8` against its parent and reported **no significant issues found**.
+
+GitHub MCP run/log inspection found the preceding zero-data run
+`38915204611` failed importing `httpx` (52 discovered items, one import error).
+That workflow's missing dependency remains unchanged and separate from this
+sandbox increment. New browser run `38924624839`, backend run `38924624347`
+and zero-data run `38924625054` for the tested implementation were
+`action_required`, **not CI passes**.
+
+Broader remaining work: workflow approval and remote CI execution; the existing
+zero-data CI dependency gap; authorized requested-project build/log and
+protected-preview GET evidence; native hosting access controls/packaging;
+daemon/six-app/time-axis integration; and separately reviewed council
+integration/provider-retention claims. Physical execution is not authorized by
+this increment. No remote browser/deployment, Docker build, or live native
+workflow smoke was run here. This is bounded sandbox acceptance, **not
+completion of the entire repository**.
