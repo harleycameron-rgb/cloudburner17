@@ -1,0 +1,36 @@
+{
+  "task": "bounded-standalone-synthetic-preview-repair",
+  "recorded_at": "2026-10-16",
+  "baseline_sha": "319a7df1283b6a266a8a9ce6ddd7f42e405c55b9",
+  "initial_checkout_sha": "58251d51b1e917ec4722af533ee6063bafa1ba3d",
+  "initial_worktree_clean": true,
+  "entrypoint": "backend.scandoc_page:app",
+  "scope": "Existing synthetic sandbox only; no native, daemon, six-app, original six-leg prototype, time-axis or council API integration",
+  "native_and_council_source_unchanged": true,
+  "tests": {
+    "council_workflow_socket_blocked": {"passed": 7, "failed": 0, "exit_code": 0},
+    "backend_socket_blocked_initial": {"passed": 8, "failed": 1, "exit_code": 1},
+    "backend_socket_blocked_corrected": {"passed": 9, "failed": 0, "exit_code": 0},
+    "sandbox_javascript": {"passed": 9, "failed": 0, "exit_code": 0},
+    "synthetic_geometry": {"passed": 5, "failed": 0, "exit_code": 0},
+    "all_javascript": {"passed": 80, "failed": 0, "exit_code": 0},
+    "all_python_socket_blocked": {"passed": 58, "failed": 0, "exit_code": 0},
+    "local_http_get_checks": {"passed": 14, "failed": 0, "exit_code": 0}
+  },
+  "network_isolation": "Workflow-equivalent Python socket patches; OS network namespace unavailable; audited local subprocesses do not inherit patches",
+  "council_inference_calls": 0,
+  "preview": {
+    "project_id": "prj_BvHWk06AfoyC9qsuqaLwg4VHj5ib",
+    "team_id": "team_FvvGW28W3COeiV8AqQKY3ZA3",
+    "state": "initial_git_linked_build_error; repair_not_yet_observed",
+    "externally_verified": false,
+    "url": null
+  },
+  "blockers": [
+    "Observe repaired existing protected Git-linked preview build and authorized external GET smoke",
+    "Pre-existing zero-data CI workflow lacks httpx for council test discovery"
+  ],
+  "evidence": ["docs/DEPLOYMENT_STATUS.md", "docs/TEST_EVIDENCE.md"],
+  "production_promoted": false,
+  "merged": false
+}
