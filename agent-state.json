@@ -15,7 +15,9 @@
     ],
     "mergeCommit": "a43f772ccbccb88b0be7e569f91ccce8f03a2775",
     "mergeTree": "edb44ee2ab5c8d5ffeb7f388e6c7c48c79d363ce",
-    "githubMergeability": "PR was unstable after merge commit; refresh after evidence update"
+    "githubMergeability": "unstable; PR remains open and unmerged",
+    "headAtStatusCheck": "15dbf25aa488ea98f37baf1197a74658f8d2fa4c",
+    "headActions": "Runs 38945465123, 38945465038, 38945458523, 38945458290, 38945955262, and 38945955110 were action_required with zero jobs."
   },
   "completedTasks": [
     "Fetched the actual current origin/main ref and verified its SHA.",
@@ -26,10 +28,19 @@
     "Ran merged-tree focused contract, SCANDOC Node regressions, and full JavaScript tests; results are recorded below and in docs/TEST_EVIDENCE.md."
   ],
   "pendingTasks": [
-    "Refresh GitHub PR mergeability after the evidence update."
+    "PR mergeability remains unstable; no approval or merge was performed, as requested."
   ],
   "lastVerifiedSourceCommit": "a43f772ccbccb88b0be7e569f91ccce8f03a2775",
-  "lastVerifiedDeployment": null,
+  "lastVerifiedDeployment": {
+    "source": "GitHub commit status",
+    "head": "15dbf25aa488ea98f37baf1197a74658f8d2fa4c",
+    "context": "Vercel – cloudburner17",
+    "state": "success",
+    "description": "Deployment has completed",
+    "checkedAt": "2026-10-16T18:15:58Z",
+    "runtimeUrlTested": false,
+    "promoted": false
+  },
   "testResults": {
     "mergeResolution": {
       "focusedCommand": "node --experimental-test-coverage --test-coverage-include=src/hash1536_contract.js --test tests/hash1536_contract.test.js",
@@ -49,7 +60,7 @@
         "currentMainZeroData": {"run": "38940517619", "sha": "821a32d8484714aa8bcbb5c7427ab88aa347d6b6", "result": "success"},
         "currentMainBackendContainer": {"run": "38940517609", "sha": "821a32d8484714aa8bcbb5c7427ab88aa347d6b6", "result": "success"},
         "historicalMissingHttpxFailure": {"run": "38940591380", "sha": "376e75a083fb5d5947cf9bb0f253d59b292c0ab2", "result": "failure; httpx missing during discovery"},
-        "mergedTreeCI": "No workflow result for the merge-resolution commit is claimed."
+        "mergedTreeCI": "PR-head runs 38945465123, 38945465038, 38945458523, 38945458290, 38945955262, and 38945955110 were action_required with zero jobs; no Actions test result for the merged tree."
       },
       "runtimeVersions": {
         "node": "v24.21.0",
@@ -75,10 +86,10 @@
     }
   },
   "blockers": [
-    "Actual preview status for the current PR head is unverified; no deployment was initiated by this merge task.",
+    "Vercel status reports the preview deployment complete, but its URL and application response were not independently verified; no deployment was intentionally initiated or promoted by this merge task.",
     "Local backend tests were blocked by absent pytest/FastAPI/httpx/uvicorn; no Playwright configuration or browser suite exists in fetched main/merged checkout."
   ],
-  "nextExecutableAction": "Refresh PR mergeability, report the merge commit SHA and test blockers, then stop without approving or merging the PR.",
+  "nextExecutableAction": "Report merge commit a43f772ccbccb88b0be7e569f91ccce8f03a2775, final head status, tests and blockers; stop without approving or merging the PR.",
   "historicalWorkstreamCheckpoints": {
     "hash1536ReadinessPR": {
       "currentTask": "Repair sparse geometry validation on the existing hash1536 readiness PR.",

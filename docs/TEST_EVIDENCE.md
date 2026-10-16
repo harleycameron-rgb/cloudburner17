@@ -64,7 +64,13 @@ Remote CI evidence was also inspected through Actions job logs:
   `httpx` was missing. The subsequent success on current `main` is a different
   source SHA and includes the dependency installation.
 - These Actions runs predate and do not test the merged PR tree. No workflow
-  result for the merge-resolution commit is claimed.
+  test result for the merge-resolution commit is claimed. PR-head Actions runs
+  `38945465123`, `38945465038`, `38945458523`, `38945458290`, `38945955262`,
+  and `38945955110` were `action_required` with zero jobs, not test passes or
+  failures. GitHub did report the separate Vercel deployment status as complete
+  for final PR head `15dbf25aa488ea98f37baf1197a74658f8d2fa4c`; see
+  [DEPLOYMENT_STATUS.md](DEPLOYMENT_STATUS.md). No external application smoke
+  test was performed.
 
 ## Historical hash1536 readiness PR evidence (before merging current main)
 
