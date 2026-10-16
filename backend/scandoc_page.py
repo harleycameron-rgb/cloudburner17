@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from fastapi import APIRouter, FastAPI, HTTPException
-from fastapi.responses import HTMLResponse, Response
+from fastapi.responses import HTMLResponse, RedirectResponse, Response
 
 
 # Preload before the full application's supervisor installs its filesystem guard.
@@ -37,3 +37,8 @@ async def scandoc_asset(asset: str):
 # Standalone serverless entry point does not import the native lifecycle runtime.
 app = FastAPI()
 app.include_router(router)
+
+
+@app.get("/", include_in_schema=False)
+async def preview_home():
+    return RedirectResponse("/scandoc", status_code=307)

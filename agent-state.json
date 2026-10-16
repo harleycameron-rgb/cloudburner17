@@ -1,45 +1,144 @@
 {
-  "currentTask": "Repair sparse geometry validation on the existing hash1536 readiness PR.",
+  "currentTask": "Merge current main into the existing hash1536 readiness PR without merging the PR into main.",
+  "recorded_at": "2026-10-16",
+  "branch": "copilot/hash1536-implement-bounded-pr",
+  "pullRequest": 36,
+  "mergeResolution": {
+    "target": "main",
+    "targetSha": "821a32d8484714aa8bcbb5c7427ab88aa347d6b6",
+    "mergeBase": "f18e32ad41333c44cc53b3fc42009df3e0a0abf8",
+    "preMergeHead": "6348c02b879b336f72b44159133f7e3c65728116",
+    "conflictingFiles": [
+      "agent-state.json",
+      "docs/DEPLOYMENT_STATUS.md",
+      "docs/TEST_EVIDENCE.md"
+    ],
+    "mergeCommit": null,
+    "githubMergeability": "not checked after conflict resolution"
+  },
   "completedTasks": [
-    "Confirmed actual starting commit f9cbea547d8f0a867b91f8a5be254f27b46b7543 has expected baseline f18e32ad41333c44cc53b3fc42009df3e0a0abf8 as its parent.",
-    "Added an additive typed readiness contract for exactly six launch roles and two separate post-launch extension types.",
-    "Kept unresolved qualification explicit and the live gate closed.",
-    "Added eight focused tests and measured validator-only line, branch, and function coverage.",
-    "Ran the existing JavaScript test suite after auditing it for live-service side effects.",
-    "CodeQL JavaScript analysis reported zero alerts.",
-    "Reproduced sparse-reference acceptance against the old validator before applying the own-coordinate check.",
-    "Added sparse-array, inherited-coordinate, malformed-record, phase, qualification, and measurement regressions.",
-    "Focused repair suite passed 11 tests with 100% validator-only line, branch, and function coverage.",
-    "Audited npm test suite passed 91 tests; no deployed-service test calls were found."
+    "Fetched the actual current origin/main ref and verified its SHA.",
+    "Progressively deepened shallow history and established merge base f18e32ad41333c44cc53b3fc42009df3e0a0abf8.",
+    "Started a genuine three-way merge; both workstreams and their checkpoint/test histories are retained below and in shared docs.",
+    "Kept six launch roles distinct from the two extension types; qualification is unresolved and unauthorized; liveGate remains CLOSED."
   ],
   "pendingTasks": [
-    "No further implementation tasks; independent deployment/preview status remains unverified."
+    "Run focused hash1536 tests with line/branch coverage.",
+    "Run safe JavaScript, Python, and available browser regressions; record unavailable dependencies or browser infrastructure honestly.",
+    "Verify no conflict markers remain, confirm merge commit has two parents, and check GitHub PR mergeability."
   ],
-  "lastVerifiedSourceCommit": "9c0365a7b13957c0d6cc7d18a74c73e0612d93bf",
+  "lastVerifiedSourceCommit": "6348c02b879b336f72b44159133f7e3c65728116",
   "lastVerifiedDeployment": null,
   "testResults": {
-    "preFixRegressionCommand": "node --test tests/hash1536_contract.test.js",
-    "preFixRegressionExitCode": 1,
-    "preFixRegressionResult": "10 passed, 1 failed; sparse geometry reference was accepted by the old implementation.",
-    "focusedCommand": "node --experimental-test-coverage --test-coverage-include=src/hash1536_contract.js --test tests/hash1536_contract.test.js",
-    "focusedExitCode": 0,
-    "focusedResult": "11 passed, 0 failed; src/hash1536_contract.js: 100% line, branch, and function coverage.",
-    "existingSuiteCommand": "npm test",
-    "existingSuiteExitCode": 0,
-    "existingSuiteResult": "91 passed, 0 failed.",
-    "runtimeVersions": {
-      "node": "v24.21.0",
-      "npm": "11.19.0",
-      "python": "3.12.3"
-    },
-    "scope": "Coverage is validator-only, not full invariant-engine coverage. No Python suite, type-checker, deployed service, or physical control was run."
+    "mergeResolution": "Pending validation against the merged tree.",
+    "hash1536ReadinessPRHistorical": {
+      "preFixRegressionCommand": "node --test tests/hash1536_contract.test.js",
+      "preFixRegressionExitCode": 1,
+      "preFixRegressionResult": "10 passed, 1 failed; sparse geometry reference was accepted by the old implementation.",
+      "focusedCommand": "node --experimental-test-coverage --test-coverage-include=src/hash1536_contract.js --test tests/hash1536_contract.test.js",
+      "focusedExitCode": 0,
+      "focusedResult": "11 passed, 0 failed; validator-only line, branch, and function coverage was 100%.",
+      "existingSuiteCommand": "npm test",
+      "existingSuiteExitCode": 0,
+      "existingSuiteResult": "91 passed, 0 failed, before merging current main.",
+      "runtimeVersions": {
+        "node": "v24.21.0",
+        "npm": "11.19.0",
+        "python": "3.12.3"
+      }
+    }
   },
   "blockers": [
-    "Role evidence, measurements and units, source-channel mapping, trusted qualification, receipts, agreement criteria, and calibration remain unresolved.",
-    "The two extensions are type declarations only.",
-    "Live gate remains CLOSED. No deployment was initiated by the repair task; actual preview/deployment status is unverified, and an automatic preview is not ruled out.",
-    "GitHub Actions runs 38809903228 and 38809903111 were action_required with zero jobs, so CI build status is unknown.",
-    "The automated code-review component was unavailable; no independent review findings were produced."
+    "Actual preview status for the current PR head is unverified; no deployment was initiated by this merge task.",
+    "Local pytest, FastAPI, httpx, uvicorn, and Playwright packages are currently unavailable; browser test infrastructure has not yet been found."
   ],
-  "nextExecutableAction": "Report the verified repair and stop; do not intentionally deploy or enable live qualification."
+  "nextExecutableAction": "Run safe focused and regression tests against the merged tree; do not promote deployments, enable live qualification, or merge the PR.",
+  "historicalWorkstreamCheckpoints": {
+    "hash1536ReadinessPR": {
+      "currentTask": "Repair sparse geometry validation on the existing hash1536 readiness PR.",
+      "completedTasks": [
+        "Confirmed actual starting commit f9cbea547d8f0a867b91f8a5be254f27b46b7543 has expected baseline f18e32ad41333c44cc53b3fc42009df3e0a0abf8 as its parent.",
+        "Added an additive typed readiness contract for exactly six launch roles and two separate post-launch extension types.",
+        "Kept unresolved qualification explicit and the live gate closed.",
+        "Added eight focused tests and measured validator-only line, branch, and function coverage.",
+        "Ran the existing JavaScript test suite after auditing it for live-service side effects.",
+        "CodeQL JavaScript analysis reported zero alerts.",
+        "Reproduced sparse-reference acceptance against the old validator before applying the own-coordinate check.",
+        "Added sparse-array, inherited-coordinate, malformed-record, phase, qualification, and measurement regressions.",
+        "Focused repair suite passed 11 tests with 100% validator-only line, branch, and function coverage.",
+        "Audited npm test suite passed 91 tests; no deployed-service test calls were found."
+      ],
+      "pendingTasks": [
+        "No further implementation tasks; independent deployment/preview status remains unverified."
+      ],
+      "lastVerifiedSourceCommit": "9c0365a7b13957c0d6cc7d18a74c73e0612d93bf",
+      "lastVerifiedDeployment": null,
+      "blockers": [
+        "Role evidence, measurements and units, source-channel mapping, trusted qualification, receipts, agreement criteria, and calibration remain unresolved.",
+        "The two extensions are type declarations only.",
+        "Live gate remains CLOSED. No deployment was initiated by the repair task; actual preview/deployment status is unverified, and an automatic preview is not ruled out.",
+        "GitHub Actions runs 38809903228 and 38809903111 were action_required with zero jobs, so CI build status is unknown.",
+        "The automated code-review component was unavailable; no independent review findings were produced."
+      ],
+      "nextExecutableAction": "Report the verified repair and stop; do not intentionally deploy or enable live qualification."
+    },
+    "standaloneSyntheticPreviewRepair": {
+      "task": "bounded-standalone-synthetic-preview-repair",
+      "recorded_at": "2026-10-16",
+      "baseline_sha": "319a7df1283b6a266a8a9ce6ddd7f42e405c55b9",
+      "initial_checkout_sha": "58251d51b1e917ec4722af533ee6063bafa1ba3d",
+      "initial_worktree_clean": true,
+      "first_repair_attempt_sha": "d0bf92a6f7d7c56343aac08561fa0b47e09ab765",
+      "tested_code_sha": "e2b321ca88e6588f91f75a81e26bf778ddcf2fd4",
+      "manifest_correction": "Valid project metadata and existing fastapi/uvicorn dependencies; redundant root requirements removed",
+      "entrypoint": "backend.scandoc_page:app",
+      "scope": "Existing synthetic sandbox only; no native, daemon, six-app, original six-leg prototype, time-axis or council API integration",
+      "native_and_council_source_unchanged": true,
+      "tests": {
+        "council_workflow_socket_blocked": {"passed": 7, "failed": 0, "exit_code": 0},
+        "backend_socket_blocked_initial": {"passed": 8, "failed": 1, "exit_code": 1},
+        "backend_socket_blocked_corrected": {"passed": 9, "failed": 0, "exit_code": 0},
+        "sandbox_javascript": {"passed": 9, "failed": 0, "exit_code": 0},
+        "synthetic_geometry": {"passed": 5, "failed": 0, "exit_code": 0},
+        "all_javascript": {"passed": 80, "failed": 0, "exit_code": 0},
+        "all_python_socket_blocked": {"passed": 58, "failed": 0, "exit_code": 0},
+        "local_http_get_checks": {"passed": 14, "failed": 0, "exit_code": 0}
+      },
+      "packaging_validation": {"tool": "uv 0.13.1 lock --dry-run", "resolved_packages": 15, "exit_code": 0},
+      "network_isolation": "Workflow-equivalent Python socket patches; OS network namespace unavailable; audited local subprocesses do not inherit patches",
+      "council_inference_calls": 0,
+      "preview": {
+        "project_id": "prj_BvHWk06AfoyC9qsuqaLwg4VHj5ib",
+        "team_id": "team_FvvGW28W3COeiV8AqQKY3ZA3",
+        "state": "corrected_requested_project_last_observed_pending; final_outcome_unknown",
+        "deployment_id": "dpl_6PH8es2oLeSJtuz167E2VBzfZrNc",
+        "initial_repair_failed_deployment": "dpl_3sGQLubZ3sJCjPGUVwCGu6sKrU58",
+        "build_logs": "Not obtained: Vercel dashboard/API DNS failed; browser transport closed; GitHub status history HTTP 403",
+        "externally_verified": false,
+        "url": null,
+        "other_project_ready": {
+          "project_id": "prj_WZlBVbIMYdypNKKVvfhr7HFzwHA9",
+          "deployment_id": "dpl_6EbqhUzpbsxfn49JuBpctXZjDDQg",
+          "root_directory": "backend",
+          "url": "https://cloudburner17-git-copilot-create-bounded-02f35d-scandoc-sphere.vercel.app",
+          "externally_verified": false,
+          "used_as_substitute": false
+        }
+      },
+      "validation": {
+        "codeql_python_alerts": 0,
+        "parallel_code_review": "Unavailable model; not a completed review",
+        "fallback_read_only_review": "Manifest defect fixed; correction re-reviewed with no significant issues",
+        "secret_scan": "No secrets detected"
+      },
+      "blockers": [
+        "Obtain corrected requested-project build outcome/logs; last observed pending before another project's status overwrote it",
+        "Successful requested-project protected preview build and authorized external GET smoke remain unverified",
+        "Pre-existing zero-data CI workflow lacks httpx for council test discovery"
+      ],
+      "evidence": ["docs/DEPLOYMENT_STATUS.md", "docs/TEST_EVIDENCE.md"],
+      "production_promoted": false,
+      "merged": false
+    }
+  }
 }
