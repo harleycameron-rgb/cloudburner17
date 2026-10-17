@@ -169,7 +169,8 @@ Resolved FastAPI 0.143.3, Uvicorn 0.54.0, httpx 0.28.1 and existing pytest runne
 introduced. Exact executed validation:
 
 * ``python -B -m unittest discover -s tests -p test_scandoc_research.py -v``:
-  initial 17 new tests passed; subsequent guard-export test brings coverage to 18.
+  initial 17 new tests passed; final focused execution **18 passed**, including
+  the added persistence-guard export rejection test.
 * ``python -B -m unittest discover -s tests -v``: **76 passed**, including all
   18 new controls/replay/persistence tests.
 * ``python -B -m pytest -p no:cacheprovider /home/runner/work/cloudburner17/cloudburner17/tests -q``:
@@ -191,6 +192,18 @@ introduced. Exact executed validation:
 No linter/build command exists in the root package configuration. No Docker,
 deployment, supervised lifecycle endpoint or timestamp service was exercised.
 These are local executions, not a claim that hosted CI passed.
+
+Review/security validation
+--------------------------
+
+Changed files passed the supplied secret scanner before each commit; no secrets
+were detected. ``git diff --check`` passed. The required parallel validation
+completed Python CodeQL with **zero alerts**. Its automated review backend was
+unavailable (configured model missing), despite the wrapper's success label;
+this is not recorded as a successful automated review. A separate read-only
+code-review agent reviewed the complete baseline diff and reported no significant
+issues. The existing backend entrypoint assertion failure remains unresolved and
+out of scope; no research/security finding was suppressed to obtain a pass.
 
 Small reproducible example
 --------------------------
