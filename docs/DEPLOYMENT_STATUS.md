@@ -1,6 +1,30 @@
-# Standalone synthetic preview repair
+# Deployment status
 
-## Provenance and scope (2026-10-16)
+## Current PR merge-resolution update — 2026-10-16
+
+No deployment was initiated by this merge-resolution task. Current preview or
+deployment status was checked via the GitHub commit status for head
+`15dbf25aa488ea98f37baf1197a74658f8d2fa4c`: context `Vercel – cloudburner17`
+reported **success**, “Deployment has completed,” at 2026-10-16 18:15:58 UTC.
+This is consistent with an automatic preview; no deployment was initiated or
+promoted by this task. The status target is a Vercel project page; the preview
+URL and application response were not independently tested, so runtime behavior
+remains unverified. No live action, physical control, DNS change, or persistent
+write was initiated. The hash1536 readiness contract continues to require
+`liveGate: "CLOSED"` and unresolved, unauthorized qualification. No deployment
+or privacy qualification is asserted.
+
+This status observation is for the cited head; the subsequent evidence-only
+branch update was not part of that status check and may independently trigger
+an automatic preview.
+
+The following records the separate historical main-branch synthetic preview
+repair workstream; its observed deployment status must not be confused with
+the status of this PR's current head.
+
+## Historical main workstream: standalone synthetic preview repair
+
+### Provenance and scope (2026-10-16)
 
 - Requested inspected baseline: `319a7df1283b6a266a8a9ce6ddd7f42e405c55b9`.
 - Actual initial checkout: `58251d51b1e917ec4722af533ee6063bafa1ba3d`.
