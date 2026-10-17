@@ -46,6 +46,9 @@ export function registerCommitment(commitment) {
   ) {
     throw new TypeError("Invalid commitment");
   }
+  if (STATE.commitments.has(commitment.moduleId)) {
+    throw new Error("Commitment already registered");
+  }
   STATE.commitments.set(commitment.moduleId, {
     commitment,
     dependenciesResolved: false,
