@@ -6,7 +6,12 @@ on:
 
 jobs:
   zero-data:
+    name: Zero-data (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
     permissions:
       contents: read
     env:
@@ -15,7 +20,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: ${{ matrix.python-version }}
       - name: Install backend and test dependencies
         run: python -m pip install --disable-pip-version-check -r backend/requirements.txt "httpx==0.28.1"
       - name: Test zero-data enforcement and deterministic harmony
