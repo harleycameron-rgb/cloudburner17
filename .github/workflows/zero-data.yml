@@ -16,8 +16,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Install test dependency
-        run: python -m pip install --disable-pip-version-check "httpx==0.28.1"
+      - name: Install backend and test dependencies
+        run: python -m pip install --disable-pip-version-check -r backend/requirements.txt "httpx==0.28.1"
       - name: Test zero-data enforcement and deterministic harmony
         run: python -B -m unittest discover -s tests -v
       - name: Run supervised pipeline with zero-data guard
