@@ -25,8 +25,12 @@ def test_root_configuration_imports_only_standalone_entrypoint():
 
 def test_root_bundle_includes_all_preloaded_assets():
     config = json.loads((ROOT / "vercel.json").read_text())
-    assert set(config["functions"]) == {"backend/scandoc_page.py"}
-    pattern = config["functions"]["backend/scandoc_page.py"]["includeFiles"]
-    bundled = {path.name for path in ROOT.glob(pattern + "/*") if path.is_file()}
+    assert config["functions"] == {
+        "backend/main.py": {"includeFiles": "{src/**,backend/**}"},
+        "backend/scandoc_page.py": {
+            "includeFiles": "{backend/scandoc/**,src/**}"
+        },
+    }
+    bundled = {path.name for path in (ROOT / "backend" / "scandoc").iterdir()}
     assert set(ASSETS) == {"index.html", "app.js", "model.js", "style.css"}
     assert set(ASSETS) <= bundled
