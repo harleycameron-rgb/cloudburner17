@@ -1,9 +1,7 @@
 name: Backend container
 
 on:
-  push:
-  pull_request:
-  workflow_dispatch:
+  workflow_call:
 
 permissions:
   contents: read
@@ -14,9 +12,34 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Check out source
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
       - name: Build backend image
-        run: docker build --progress=plain -f backend/Dockerfile -t cloudburner17:ci .
+        run: docker build --progress=plain -f backend/Dockerfile -t cloudburner17:ci . 2>&1 | tee "$RUNNER_TEMP/container-build.log"
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.12"
       - name: Verify Node minimum inside image
         run: |
           docker run --rm --entrypoint node cloudburner17:ci --input-type=commonjs -e 'console.log("Node.js " + process.versions.node); if (Number(process.versions.node.split(".")[0]) < 18) process.exit(1);'
+      - name: Read-only app smoke
+        run: |
+          docker run --rm -d --name cloudburner17-smoke -p 127.0.0.1:18000:8000 cloudburner17:ci
+          trap 'docker stop cloudburner17-smoke >/dev/null' EXIT
+          ready=false
+          for _ in $(seq 1 30); do
+            if curl --silent --fail --max-time 2 http://127.0.0.1:18000/runtime >/dev/null; then
+              ready=true
+              break
+            fi
+            sleep 1
+          done
+          test "$ready" = true
+          python -B .github/scripts/vercel_checks.py smoke http://127.0.0.1:18000
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: ${{ always() }}
+        with:
+          name: container-build-log
+          path: ${{ runner.temp }}/container-build.log
+          retention-days: 7
