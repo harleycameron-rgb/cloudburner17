@@ -14,6 +14,13 @@ SPEC.loader.exec_module(checks)
 
 
 class DeploymentGuardTests(unittest.TestCase):
+    def test_logging_workflows_require_explicit_bash_for_pipefail(self):
+        for path in (ROOT / ".github" / "workflows").glob("*.yml"):
+            text = path.read_text()
+            if "| tee " in text:
+                with self.subTest(workflow=path.name):
+                    self.assertIn("defaults:\n  run:\n    shell: bash\n", text)
+
     def test_only_exact_existing_project_and_source_are_accepted(self):
         project = {
             "id": checks.PROJECT, "accountId": checks.TEAM,

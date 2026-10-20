@@ -93,7 +93,9 @@ Artifacts (7-day retention) contain only JavaScript/zero-data test output,
 backend JUnit XML, container build output and deployment status/smoke summaries.
 They never upload `.vercel/`, `.env`, build function bundles, dependency
 directories, credentials, request/response bodies, or application data.
-Shell pipeline failures propagate through `pipefail`; no check uses
+All workflows explicitly select `shell: bash`, enabling Actions'
+`bash --noprofile --norc -e -o pipefail` execution. Shell pipeline failures
+propagate through `pipefail`; no check uses
 `continue-on-error`. Dependency installation, configuration failures and failed
 tests remain visible.
 
@@ -216,13 +218,15 @@ all workflows after fixing one unused loop variable.
 - Focused SCANDOC/page tests: **9 passed**, exit 0.
 - Full `npm test`: **91 passed**, exit 0.
 - `npm run test:typescript`: **4 passed**, exit 0.
-- Final Python 3.12 unittest discovery: **91 passed**, exit 0.
-- Final backend plus deployment guard pytest run: **14 passed, 1 failed**,
+- Final Python 3.12 unittest discovery: **92 passed**, exit 0.
+- Final backend plus deployment guard pytest run: **15 passed, 1 failed**,
   exit 1. The failure is the unchanged entrypoint conflict described above,
   not an ignored/expected-success result.
-- Final focused deployment guard tests: **6 passed**, exit 0.
+- Final focused deployment/workflow guard tests: **7 passed**, exit 0.
+  A direct `false | tee /dev/null` check using Actions' explicit Bash invocation
+  returned exit 1 as required; logging cannot turn failure into success.
 - Hosted Python **3.11.17** unittest discovery with the same constraints:
-  **91 passed**, exit 0 (includes the additional READY guard test).
+  **92 passed**, exit 0.
 - Exact council workflow command with socket connections denied: **7 passed**,
   exit 0; no external model call.
 - Docker build: exit 0; image Node **20.19.2** satisfies >=18.
@@ -238,9 +242,19 @@ all workflows after fixing one unused loop variable.
   invoked as a live operation. No Vercel CLI build/deploy, API credential check,
   protected external smoke, promotion or rollback was run.
 - Recent main workflows were successful; initial PR Actions runs
-  `39503757014` and `39503756811` were **action_required**, zero executed jobs.
-  GitHub log lookup found no failed jobs/logs for that pending-approval run;
-  that is not a remote CI pass.
+  `39503757014` and `39503756811` were initially **action_required**, then
+  separately approved by the owner and successful on attempt 2 for the
+  **baseline** commit, not this implementation. Implementation commit
+  `dc96f4d` triggered unified workflow run `39505187271`, currently
+  **action_required**, zero executed jobs. GitHub log lookup found no failed
+  jobs/logs for that pending-approval run; that is not a remote CI pass.
+- Committed-code CodeQL validation completed for **Actions and Python:
+  zero alerts**. Secret scanning found no secrets in changed files. The parallel
+  automated review service could not initialize its configured model; its
+  empty finding list is not a completed review. A separate read-only reviewer
+  identified that implicit shell selection did not guarantee `pipefail`;
+  explicit Bash defaults and a focused regression test now address that issue.
+  The reviewer confirmed the fix and reported no other high-confidence issues.
 - Intended mapping, external integration shutdown, entrypoint authorization,
   Vercel runtime/dependency parity, environment setup, branch protection and
   required reviews remain **owner blockers**. Vercel documentation retrieval
