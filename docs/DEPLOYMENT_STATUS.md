@@ -1,6 +1,6 @@
 # Deployment status
 
-## CI and manual deployment preparation — 2026-10-20
+## CI and manual deployment preparation — 2026-10-21
 
 This section supersedes historical deployment instructions below. **Deployment
 is disabled by default.** No deployment, promotion, rollback, secret retrieval or
@@ -8,6 +8,64 @@ change, access-control/DNS change, infrastructure provisioning, live ignition,
 Sphere write, or AI transmission was initiated by this implementation.
 All existing live/qualification gates remain closed. Offline unit tests exercise
 synthetic in-memory lifecycle mathematics, not physical operations.
+
+### Focused PR 45 follow-up
+
+The inspected main revision was `81f0f6f6181640a3d1b796b3643a27e8a3378476`.
+Deployment source identity is now explicit: preflight compares the checkout's
+`git rev-parse HEAD` with `GITHUB_SHA`, and the Vercel CLI receives source revision,
+repository, approved project/team, target, workflow run ID, and attempt as
+`--meta` fields. The authenticated API response is read first by the CLI-returned
+URL and again by its deployment ID; both reads must agree on immutable URL, ID,
+project/team, target, source metadata, and READY state. These CLI metadata fields
+are identity assertions, **not independent authentication of the built artifact**.
+
+An opted-in attempt writes one schema-versioned JSON manifest to runner temp and
+uploads only that manifest (30-day retention), including expected source/repo,
+project/team, target, workflow run, observed deployment ID/immutable URL when
+available, identity verification status, and per-check `passed`/`failed`/`not_run`
+outcomes. It contains no credentials, `.vercel`, environment files, bundles,
+application payloads, logs, or response bodies. A failed identity check remains
+failed in the manifest. No actual deployment was authorized or run here, so no
+live deployment manifest/artifact exists for this change.
+
+The approved project's root-directory evidence in PR 45's Vercel bot comment is
+`backend`, not repository root; the project validator now requires that exact
+value. This is historical read-only bot evidence, not a fresh authenticated
+project-API check. More importantly, deployment is deliberately blocked by the
+unresolved application-surface decision below before CLI installation/build.
+Council scopes separate ordinary CI, PRs, and each manual dispatch run. Repeated
+same-scope CI can still cancel its superseded check, while approved preview and
+production deployments share one non-cancelling serialization group.
+
+The backend failure was verified rather than suppressed: `pyproject.toml`
+selects `backend.main:app`, but `backend/tests/test_preview_config.py` requires
+`backend.scandoc_page:app`; the main app exposes POST lifecycle/admission/
+spherical routes, while the standalone app is read-only and has no `/runtime`
+route expected by the current smoke contract. Root and backend Vercel manifests
+also include/route to `main.py`. No app or test contract was changed. An owner
+must decide the authorized surface and review/update all app, routing, bundle,
+and smoke contracts together before the deployment guard can pass. The slim-image
+test history remains 88 passed/3 failed on strict denied reads of absent
+standard-library `__pycache__` paths; the audit guard was not relaxed.
+
+Read-only GitHub evidence: main run `39520403942` for inspected revision
+`81f0f6f6181640a3d1b796b3643a27e8a3378476` had JavaScript, offline council,
+both zero-data jobs, and container build/smoke succeed. Backend tests failed
+15/16 on the entrypoint assertion; the Required CI aggregator failed, and both
+deployment jobs were skipped. Its job log confirms the exact assertion above.
+The Vercel bot comment and statuses on PR 45 (`6302461383`) show Git-triggered
+READY deployments for both the intended project and the separate
+`scandoc-sphere/cloudburner17` project. This confirms independent deployment
+risk, but does not prove current Vercel settings or runtime behavior.
+
+The workflow YAML defines a **Required CI** aggregate; available tools here do
+not expose repository rulesets/branch protection, GitHub environment reviewer
+settings, environment variables/secrets, or live Vercel project/Git-integration
+settings. The collaborator listing showed only the repository admin, not those
+settings. Required-check enforcement, protected environments, current project
+root/source mapping, and disabling independent Git deployments therefore remain
+unverified owner actions. No secrets or environment values were retrieved.
 
 ### What actually builds and runs
 
@@ -17,7 +75,8 @@ synthetic in-memory lifecycle mathematics, not physical operations.
   or 20). `frontend/` and `backend/scandoc/` are plain static assets, not a
   separate npm application. Do not run fictitious `npm ci` or `npm run build`.
 - Root `pyproject.toml`: Python **>=3.11**, `fastapi`/`uvicorn`, and current
-  Vercel entrypoint **`backend.main:app`**. Backend requirements declare the same
+  Vercel entrypoint **`backend.main:app`**. The intended Vercel project has
+  reported root directory `backend`. Backend requirements declare the same
   dependency pair. CI tests zero-data behavior on **3.11 and 3.12**, with backend
   pytest on 3.12. Existing pytest files were previously absent from CI discovery.
 - `backend/constraints-ci.txt` is the actual `pip freeze` result from a fresh
@@ -42,8 +101,10 @@ dependency. Configure that check as required in main's ruleset/branch protection
 do not use the ambiguous `Vercel – cloudburner17` status as a CI gate.
 Every action is pinned to a verified commit SHA, permissions are `contents: read`,
 checkout does not persist credentials, and every executable job has a timeout.
-CI cancels superseded runs; deployments serialize per environment and are not
-cancelled by later CI pushes. No application secrets are supplied to CI.
+CI cancels superseded checks only within their CI/PR scope; each manual dispatch
+has a distinct council prerequisite scope. Approved preview/production
+deployments serialize together and are not cancelled by later CI pushes. No
+application secrets are supplied to CI.
 
 From `/home/runner/work/cloudburner17/cloudburner17`, the checks are:
 
@@ -89,10 +150,11 @@ SCANDOC CSP, asset media/security headers and exact tested asset bytes.
 They do not click controls, execute browser scripts, request `/tentacled-sphere`,
 or call any POST route. They do not establish full backend/spherical correctness.
 
-Artifacts (7-day retention) contain only JavaScript/zero-data test output,
-backend JUnit XML, container build output and deployment status/smoke summaries.
-They never upload `.vercel/`, `.env`, build function bundles, dependency
-directories, credentials, request/response bodies, or application data.
+CI artifacts contain test output, backend JUnit XML and container build output.
+The deployment workflow separately retains only the nonsecret verification
+manifest (30 days). It never uploads `.vercel/`, `.env`, build function bundles,
+dependency directories, credentials, deployment logs, request/response bodies,
+or application data.
 All workflows explicitly select `shell: bash`, enabling Actions'
 `bash --noprofile --norc -e -o pipefail` execution. Shell pipeline failures
 propagate through `pipefail`; no check uses
@@ -107,25 +169,33 @@ tests remain visible.
    `backend.main:app`. Do not weaken the test simply to deploy. An owner must
    decide and separately review which application is authorized. The native app
    exposes supervisor/admission/spherical POST routes; deployment protection is
-   not a substitute for reviewing that surface. If the standalone app is chosen,
-   update the smoke expectations in the same reviewed change.
+   not a substitute for reviewing that surface. The standalone app lacks the
+   current smoke-tested `/runtime` route. Both root and backend Vercel manifests
+   also include or route to `main.py`. The verifier now blocks unless a reviewed
+   code change explicitly establishes a safe standalone surface in all those
+   contracts and updates the smoke tests. Do not change the entrypoint or tests
+   simply to make CI green.
 2. Verify the existing intended **Vercel** team/project
    **waxtablet/waxtabletproject**, project
    `prj_NqPa3tWgpxJ5uuZX9OCFnhwHtvd4`, team
    `team_FvvGW28W3COeiV8AqQKY3ZA3`. This is a Vercel target, not an assumed
    GitHub repository name. Confirm GitHub source
-   `harleycameron-rgb/cloudburner17`, repository-root build directory, framework,
+   `harleycameron-rgb/cloudburner17`, reported root directory `backend`, framework,
    supported Python/Node runtime, protection and environment settings.
-   The preflight performs a read-only Vercel project API check of exact
-   ID/team/name/root and Git source before any `pull`/build/deploy.
+   The preflight is designed to check exact ID/team/name/root and Git source
+   through the read-only project API before any `pull`/build/deploy, after the
+   app-surface decision is resolved. No fresh authenticated API check was run.
    A mismatch **fails**; it never links, creates or substitutes a project.
 3. **External integration blocker:** PR #45's existing Vercel bot comment
    <https://github.com/harleycameron-rgb/cloudburner17/pull/45#issuecomment-6302461383>
-   reports READY at 2026-10-20 21:52 UTC for a *different* project,
+   reports READY at 2026-10-20 22:06 UTC for both the intended target and a
+   *different* project,
    `prj_WZlBVbIMYdypNKKVvfhr7HFzwHA9`, `scandoc-sphere/cloudburner17`,
-   rooted at `backend`. The matching GitHub status points there too.
-   This is evidence of Git-triggered deployment outside this pipeline, **not**
-   verification of the intended mapping, accessibility or application runtime.
+   rooted at `backend`. The intended `waxtabletproject` was also reported READY
+   with root directory `backend`. The matching GitHub statuses point to those
+   deployments. This is evidence of Git-triggered deployments outside this
+   pipeline, **not** verification of mapping, accessibility or application
+   runtime.
    Owners must disable automatic Git deployments on **all** projects connected
    to this source (preview and production), retire duplicate deployment hooks
    or other deployment automation, and confirm the Actions-only path.
@@ -160,18 +230,29 @@ enable variable unset. Never enable automatic production deployment.
 
 After separate authorization, select *CLOUDBURNER17 Pipeline → Run workflow*,
 branch main, deployment preview; inspect the selected commit and all CI checks,
-then approve the preview environment. The pinned `vercel@64.7.0` client runs:
+then approve the preview environment. The pinned `vercel@64.7.0` client runs
+from `backend/`:
 
 ```sh
 # Run by the protected workflow, not commands to execute during PR review.
 python -B .github/scripts/vercel_checks.py verify
 vercel pull --yes --environment=preview --token="$VERCEL_TOKEN"
 vercel build --token="$VERCEL_TOKEN"
-vercel deploy --prebuilt --yes --token="$VERCEL_TOKEN"
+vercel deploy --prebuilt --yes --token="$VERCEL_TOKEN" \
+  --meta "ciSourceRevision=$GITHUB_SHA" \
+  --meta "ciRepository=$GITHUB_REPOSITORY" \
+  --meta "ciProjectId=$VERCEL_PROJECT_ID" \
+  --meta "ciTeamId=$VERCEL_ORG_ID" \
+  --meta "ciTarget=$DEPLOY_ENVIRONMENT" \
+  --meta "ciWorkflowRunId=$GITHUB_RUN_ID" \
+  --meta "ciWorkflowRunAttempt=$GITHUB_RUN_ATTEMPT"
 ```
 
 The workflow uses the verified `VERCEL_ORG_ID`/`VERCEL_PROJECT_ID`, never an
-interactive project-creation flow. `pull` retrieves deployment configuration
+interactive project-creation flow. Source identity is checked against the
+checkout before invoking the CLI; metadata is explicitly supplied because CLI
+deployment of a prebuilt bundle does not imply Git metadata is present. That
+metadata is not artifact authentication. `pull` retrieves deployment configuration
 only inside the approved job; never print/upload the resulting `.vercel`
 directory or environment files. For a separately approved **production**
 dispatch, pull uses `--environment=production`; both build and deploy add
@@ -179,8 +260,10 @@ dispatch, pull uses `--environment=production`; both build and deploy add
 own approval and is not a preview promotion. These CLI build/deploy paths are
 prepared, **not live-tested** here.
 
-After CLI success, an authenticated **read-only** API check must confirm
-the returned deployment's project, target and `readyState=READY`.
+After CLI success, authenticated **read-only** API checks first resolve the
+returned URL and then re-fetch by the immutable deployment ID. They must confirm
+the same URL/ID, source/run metadata, project, team, target and
+`readyState=READY`.
 The separate **unauthenticated**, GET-only smoke step then checks the returned
 HTTPS `*.vercel.app` URL, with redirects disabled and no credential headers.
 READY means deployment processing completed, **not public accessibility or

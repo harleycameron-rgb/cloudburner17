@@ -2,6 +2,10 @@ name: Multi-LLM council offline tests
 
 on:
   workflow_call:
+    inputs:
+      concurrency_scope:
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -11,8 +15,8 @@ defaults:
     shell: bash
 
 concurrency:
-  group: council-tests-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  group: council-tests-${{ inputs.concurrency_scope }}
+  cancel-in-progress: ${{ github.event_name != 'workflow_dispatch' }}
 
 jobs:
   council-tests:
