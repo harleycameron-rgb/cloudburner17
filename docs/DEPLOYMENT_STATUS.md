@@ -44,10 +44,15 @@ selects `backend.main:app`, but `backend/tests/test_preview_config.py` requires
 spherical routes, while the standalone app is read-only and has no `/runtime`
 route expected by the current smoke contract. Root and backend Vercel manifests
 also include/route to `main.py`. No app or test contract was changed. An owner
-must decide the authorized surface and review/update all app, routing, bundle,
-and smoke contracts together before the deployment guard can pass. The slim-image
-test history remains 88 passed/3 failed on strict denied reads of absent
-standard-library `__pycache__` paths; the audit guard was not relaxed.
+must explicitly choose either (a) a SCANDOC-only, GET/HEAD surface, with native
+`main.py` removed from every deployment/build/route manifest and smoke checks
+aligned to that app, or (b) the native backend only after separately authorizing
+and reviewing its mutating routes and access controls. The owner must also
+resolve the `/runtime` and root-route smoke mismatch. Review/update app, routing,
+bundle and smoke contracts together; until then the deployment guard blocks.
+The slim-image
+audit reproduces 3 lazy-import test failures on reads of absent standard-library
+bytecode paths. The guard was not relaxed.
 
 Read-only GitHub evidence: main run `39520403942` for inspected revision
 `81f0f6f6181640a3d1b796b3643a27e8a3378476` had JavaScript, offline council,
@@ -66,6 +71,48 @@ settings. The collaborator listing showed only the repository admin, not those
 settings. Required-check enforcement, protected environments, current project
 root/source mapping, and disabling independent Git deployments therefore remain
 unverified owner actions. No secrets or environment values were retrieved.
+
+### Local follow-up validation
+
+On this branch, Node **24.21.0** / npm **11.19.0** and Python **3.12.3** were
+available. `backend/constraints-ci.txt` plus `backend/requirements.txt`,
+`httpx==0.28.1`, and `pytest==8.3.5` were installed with the repository's
+existing command:
+`python -m pip install --disable-pip-version-check -c backend/constraints-ci.txt
+-r backend/requirements.txt httpx pytest`; `python -m pip check` passed.
+
+- `npm install --ignore-scripts --package-lock=false --no-audit --no-fund`,
+  `npm test`, `npm run test:typescript`, and the three `node --check` commands:
+  install exit 0, **91 JS** and **4 TS** tests passed, syntax checks passed.
+- With outbound socket methods denied, `unittest` discovery of `tests/`:
+  **101 passed**. The supervised build, autonomy self-verification, and
+  `src.stabiliser`, `src.harmony`, `src.autonomy`, and `src.agent_core` module
+  commands also passed. The dedicated seven-test council workflow command ran
+  with socket connections denied: **7 passed**, no inference/network.
+- `PYTHONDONTWRITEBYTECODE=1 OPENROUTER_API_KEY= python -B -m pytest
+  -p no:cacheprovider backend/tests tests/test_ci_deployment.py`: **24 passed,
+  1 failed**. The sole failure is the unchanged
+  `backend.main:app` vs. `backend.scandoc_page:app` owner decision. Focused
+  deployment guard tests: **16 passed**.
+- `docker build --progress=plain -f backend/Dockerfile -t cloudburner17:ci .`:
+  exit 0. The image ran Python **3.11.17** and Node **20.19.2**. Local-loopback
+  `vercel_checks.py smoke` passed all six GET/content/header checks.
+- In that image, with the checkout mounted read-only and network disabled,
+  `python -B -m unittest discover -s tests -p test_zero_data_guard.py -v`
+  had **6 passed, 3 failed**: `test_lazy_anyio_backend_import`,
+  `test_starlette_threadpool_lazily_imports_backend`, and
+  `test_vendored_anyio_threadpool_and_vendor_symlink_rejection`. A read-only
+  trace identified denied opens of
+  `/usr/local/lib/python3.11/__pycache__/{dataclasses,copy,queue}.cpython-311.pyc`
+  (42/3/3 blocked attempts in those tests). These `PYTHONDONTWRITEBYTECODE=1`
+  cache reads are specific to the slim image; no audit allowance was added.
+- All five workflow YAML files parsed with local PyYAML; `bash -n` passed for
+  all `run` blocks in the three edited workflows. `yamllint -d relaxed` passed for the three edited
+  workflows with line-length warnings. Default `yamllint` reports style errors;
+  `actionlint` is unavailable in this sandbox.
+- The post-push workflow run `39522473399` for branch revision
+  `d3a0b946b2ab21617a3fdca6836aaf015f3f60e5` is **action_required** with zero
+  jobs. No owner approval was bypassed and no remote CI pass is claimed.
 
 ### What actually builds and runs
 

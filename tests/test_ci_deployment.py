@@ -126,6 +126,27 @@ class DeploymentGuardTests(unittest.TestCase):
                 checks.verify()
             network.assert_not_called()
 
+    def test_unresolved_surface_blocks_preflight_before_vercel_api_even_with_opt_in(self):
+        environment = {
+            "VERCEL_DEPLOY_ENABLED": "true",
+            "VERCEL_GIT_INTEGRATION_DISABLED": "true",
+            "VERCEL_PROJECT_ID": checks.PROJECT,
+            "VERCEL_ORG_ID": checks.TEAM,
+            "VERCEL_TOKEN": "x",
+            "GITHUB_SHA": "a" * 40,
+            "GITHUB_REPOSITORY": checks.REPOSITORY,
+            "GITHUB_RUN_ID": "123",
+            "GITHUB_RUN_ATTEMPT": "1",
+            "DEPLOY_ENVIRONMENT": "preview",
+        }
+        with patch.dict(checks.os.environ, environment, clear=True), \
+                patch.object(checks, "validate_checkout_revision") as checkout, \
+                patch.object(checks, "build_opener") as network:
+            with self.assertRaisesRegex(ValueError, "app-surface decision"):
+                checks.verify()
+            checkout.assert_called_once_with("a" * 40)
+            network.assert_not_called()
+
     def test_ready_does_not_accept_wrong_project_failed_build_or_wrong_target(self):
         identity = {
             "source_revision": "a" * 40,
