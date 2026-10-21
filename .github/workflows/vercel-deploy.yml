@@ -1,0 +1,78 @@
+name: Manually approved Vercel deployment
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+    secrets:
+      VERCEL_TOKEN:
+        required: true
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  deploy:
+    if: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: ${{ inputs.environment }}
+    concurrency:
+      group: vercel-${{ inputs.environment }}
+      cancel-in-progress: false
+    env:
+      VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+      VERCEL_DEPLOY_ENABLED: ${{ vars.VERCEL_DEPLOY_ENABLED }}
+      VERCEL_GIT_INTEGRATION_DISABLED: ${{ vars.VERCEL_GIT_INTEGRATION_DISABLED }}
+      DEPLOY_ENVIRONMENT: ${{ inputs.environment }}
+      PYTHONDONTWRITEBYTECODE: "1"
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "22"
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.12"
+      - name: Verify existing project, source mapping, and operator attestations
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: python -B .github/scripts/vercel_checks.py verify
+      - name: Install explicitly versioned deployment client
+        run: npm install --global vercel@64.7.0 --ignore-scripts --no-audit --no-fund
+      - name: Build and deploy only to the verified existing project
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_TELEMETRY_DISABLED: "1"
+        run: |
+          args=()
+          if [ "$DEPLOY_ENVIRONMENT" = production ]; then args+=(--prod); fi
+          vercel pull --yes --environment="$DEPLOY_ENVIRONMENT" --token="$VERCEL_TOKEN"
+          vercel build "${args[@]}" --token="$VERCEL_TOKEN"
+          vercel deploy --prebuilt "${args[@]}" --yes --token="$VERCEL_TOKEN" > "$RUNNER_TEMP/deployment-url.txt"
+      - name: Verify READY separately from public accessibility
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          python -B .github/scripts/vercel_checks.py ready "$(cat "$RUNNER_TEMP/deployment-url.txt")" 2>&1 | tee "$RUNNER_TEMP/deployment-ready.log"
+      - name: Read-only runtime and accessibility checks (no authentication bypass)
+        run: |
+          python -B .github/scripts/vercel_checks.py smoke "$(cat "$RUNNER_TEMP/deployment-url.txt")" 2>&1 | tee "$RUNNER_TEMP/deployment-smoke.log"
+      - name: Record non-secret smoke evidence only
+        if: ${{ always() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: vercel-${{ inputs.environment }}-smoke
+          path: |
+            ${{ runner.temp }}/deployment-ready.log
+            ${{ runner.temp }}/deployment-smoke.log
+          retention-days: 7
