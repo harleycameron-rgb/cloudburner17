@@ -77,6 +77,7 @@ def frontend():
     return """<!doctype html>
 <html><head><meta charset="utf-8"><title>CLOUDBURNER17</title></head>
 <body><h1>CLOUDBURNER17 Supervisor</h1>
+<nav aria-label="Main navigation"><a href="/tentacle-sphere">Tentacle Sphere</a></nav>
 <button onclick="run('burn')">Burn</button>
 <button onclick="run('ignite')">Ignite</button>
 <button onclick="run('residue')">Residue</button>
@@ -121,6 +122,51 @@ async function runSpherical() {
   }
 }
 </script></body></html>"""
+
+
+@app.get("/tentacle-sphere", response_class=HTMLResponse)
+@app.get("/tentacle-sphere/", response_class=HTMLResponse, include_in_schema=False)
+def tentacle_sphere_page():
+    return HTMLResponse("""<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tentacle Sphere — CLOUDBURNER17</title>
+  <style>
+    body { margin: 0; color: #111; background: #fff; line-height: 1.6; }
+    main { max-width: 48rem; margin: auto; padding: clamp(1rem, 4vw, 3rem); }
+    h1 { line-height: 1.2; overflow-wrap: anywhere; }
+    a { color: #0000ee; }
+    a:focus-visible { outline: 3px solid #111; outline-offset: 4px; }
+    figure { margin: 2rem 0; padding: clamp(1rem, 4vw, 2rem);
+             border: 2px dashed #666; text-align: center; }
+    figcaption { font-weight: bold; }
+  </style>
+</head>
+<body>
+  <main>
+    <nav aria-label="Page navigation"><a href="/">Return to home</a></nav>
+    <h1>Tentacle Sphere</h1>
+    <p>An introduction to the idea of a sphere with extending tentacles,
+       and a space reserved for a future visualization.</p>
+    <p>This initial page is informational only. No simulation or live
+       integration is connected.</p>
+    <figure aria-labelledby="visualization-label">
+      <figcaption id="visualization-label">Visualization placeholder</figcaption>
+      <p>No visualization is running. This area is reserved for future work.</p>
+    </figure>
+    <p>This page does not submit samples, perform admission checks, burn
+       receipts, save data, or run agent actions.</p>
+  </main>
+</body>
+</html>""", headers={
+        "Content-Security-Policy": (
+            "default-src 'none'; style-src 'unsafe-inline'; connect-src 'none'; "
+            "base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+        ),
+        "X-Content-Type-Options": "nosniff",
+    })
 
 
 @app.post("/supervise/{step}/{decision}")

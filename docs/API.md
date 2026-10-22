@@ -3,6 +3,15 @@
 The existing supervisor, admission and spherical routes in `backend/main.py`
 are unchanged. SCANDOC does not call them or attach to their lifecycle.
 
+## Tentacle Sphere introduction
+
+Open `/tentacle-sphere` (also `/tentacle-sphere/`) from the navigation link on
+the existing `/` supervisor homepage. This static introductory page retains
+the homepage's simple document styling and includes a labelled visualization
+placeholder and a return-home link. It is not a simulation or live integration.
+It loads no scripts or external assets, performs no admission or agent actions,
+burns no receipts, and saves no data. Existing API routes are unchanged.
+
 ## SCANDOC: local synthetic HTML sandbox
 
 Open `/scandoc` (also `/scandoc/`) on the existing FastAPI application.
