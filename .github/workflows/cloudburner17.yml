@@ -89,6 +89,13 @@ jobs:
     uses: ./.github/workflows/zero-data.yml
   council:
     uses: ./.github/workflows/multi-llm-council-tests.yml
+    with:
+      concurrency_scope: >-
+        ${{ github.event_name == 'workflow_dispatch' &&
+            format('dispatch-{0}-{1}', inputs.deployment, github.run_id) ||
+            (github.event.pull_request.number &&
+              format('pr-{0}', github.event.pull_request.number)) ||
+            format('ci-{0}', github.ref) }}
   container:
     uses: ./.github/workflows/backend-container.yml
 
