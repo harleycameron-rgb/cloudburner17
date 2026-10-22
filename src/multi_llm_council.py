@@ -15,6 +15,11 @@ from typing import Any, Dict, List, Optional, Sequence
 
 import httpx
 
+if __package__:
+    from .multi_llm_council_k import council_length_profile
+else:
+    from multi_llm_council_k import council_length_profile
+
 DEFAULT_MODELS = [
     "openai/gpt-4o",
     "google/gemini-2.5-flash",
@@ -50,6 +55,7 @@ class CouncilResult:
     chairman_model: str
     sentinel: str
     created_at: float = field(default_factory=time.time)
+    length_profile: Dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -74,6 +80,7 @@ class CouncilResult:
             "chairman_model": self.chairman_model,
             "sentinel": self.sentinel,
             "created_at": self.created_at,
+            "length_profile": self.length_profile,
         }
 
 
@@ -195,6 +202,7 @@ def run_council(
         final_synthesis=final_text,
         chairman_model=chairman,
         sentinel="",
+        length_profile=council_length_profile(all_rounds, final_text),
     )
     result.sentinel = make_sentinel(result.to_dict())
     return result
