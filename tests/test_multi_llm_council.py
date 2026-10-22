@@ -88,6 +88,14 @@ class MultiLLMCouncilTests(unittest.TestCase):
             ["model-a", "model-b"],
         )
         self.assertEqual(result.final_synthesis, "Combined analysis")
+        self.assertEqual(
+            result.length_profile["method"],
+            "zlib-deflate-level-9",
+        )
+        self.assertEqual(
+            [item["model"] for item in result.length_profile["items"]],
+            ["model-a", "model-b", "final_synthesis"],
+        )
 
         chair_messages = call.call_args_list[-1].args[1]
         synthesis_prompt = chair_messages[-1]["content"]

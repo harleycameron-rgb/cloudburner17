@@ -41,6 +41,10 @@ input rows; they do not use global random state.
 - `src/waxtablet_bridge.py`: validated feed-vector routing through runtime
   ignition, with failed and empty vectors halted
 - `src/multi_llm_scheduler.py`: task, LLM-weight, and timing alignment
+- `src/multi_llm_council.py`, `src/multi_llm_council_k.py`: multi-model
+  collaboration, canonical sentinel, and compressed-description-length profile
+- `src/residue.py`: legacy residue plus typed syntactic, semantic, and
+  epistemic multi-model residuals
 - `src/admission.py`: cycle-based topology continuity and live submission checks
 
 The Waxtablet adapter retains transient state in its process; it is not
@@ -79,6 +83,13 @@ can also be serialized in memory with `TentacledSphere.export_json()`; no export
 file is written, consistent with the zero-data contract.
 The text assets specify contracts and schemas and do not alter runtime
 persistence behavior.
+
+The optional research measurement and design notes are in
+[`docs/MDL_CONVERGENCE.md`](docs/MDL_CONVERGENCE.md),
+[`docs/TYPED_RESIDUE.md`](docs/TYPED_RESIDUE.md), and
+[`docs/ORRERY_REDESIGN.md`](docs/ORRERY_REDESIGN.md). The Orrery visualisation
+remains a proposal; the council length profile is an in-memory compressed-size
+proxy, not formal Kolmogorov complexity.
 
 `POST /spherical/ignite` bridges the website and Python backend to the Node.js
 spherical runtime. Its JSON body accepts `scenes`, optional sphere `options`,
