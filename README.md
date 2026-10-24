@@ -294,6 +294,22 @@ Symlinks and special files are not changed or followed. If repository
 inspection fails, no permissions are changed. Do not list directories unless
 you intend to make their regular files and directories writable by their owner.
 
+## Vercel backend-root packaging
+
+For projects with Root Directory `backend`, `backend/vercel.json` routes Scandoc
+to `scandoc_page.py` and other requests to `main.py`. The main function's FastAPI
+build hook stages the canonical `../src` and ES-module `../package.json` inside
+the function directory; both Python imports and the spherical bridge use that
+staged source. No separate admission implementation or pip package is needed.
+
+This requires a Python builder supporting the configured build hook, source
+outside the project root to be available during the build, and no project-level
+build-command override replacing the staging command. Verify those external
+settings for the target project; local layout tests cannot establish them.
+The repository-root Vercel configuration and `backend.scandoc_page:app` entrypoint
+in `pyproject.toml` are a separate deployment surface, not a replacement homepage
+for the backend-root application.
+
 ## Container deployment
 
 Build from the repository root so the Dockerfile can copy both `backend/` and

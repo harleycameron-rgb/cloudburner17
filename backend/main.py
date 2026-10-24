@@ -6,7 +6,10 @@ import sys
 import time
 from contextlib import asynccontextmanager
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src")))
+SRC_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "src"))
+if not os.path.isdir(SRC_DIR):
+    SRC_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src"))
+sys.path.append(SRC_DIR)
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
@@ -24,9 +27,7 @@ from residue import Residue
 from tentacled_sphere import TentacledSphere
 
 sup = None
-SPHERICAL_BRIDGE = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "..", "src", "spherical_runtime_bridge.mjs")
-)
+SPHERICAL_BRIDGE = os.path.join(SRC_DIR, "spherical_runtime_bridge.mjs")
 SPHERICAL_INPUT_LIMIT = 1024 * 1024
 
 
