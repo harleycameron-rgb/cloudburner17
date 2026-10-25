@@ -1,0 +1,35 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {FACE_ORDER,CONTRACT_ID,CONTRACT_VERSION,sealQualification,validateQualification,createQualificationAuthority} from '../src/face_qualification.js';
+const h='a'.repeat(128),v='b'.repeat(128),bindings={session_id:'s1',qualification_epoch:'e1',origin_digest:h,profile_digest:h};
+const yes=()=>Object.fromEntries(['S','B','F','G','R','A','C','P'].map(k=>[k,true]));
+function body(face='Tap',extra={}){return {outcome:'QUALIFIED',contract_id:CONTRACT_ID,contract_version:CONTRACT_VERSION,...bindings,face_id:face,event_id:`evt-${face}`,logical_tick:0,input_digest:h,geometry_digest:h,output_digest:h,alternate_evidence_digest:h,counter_evidence_digest:h,validator_artifact_digest:v,predicate_results:yes(),live_write_performed:false,...extra};}
+const record=(f='Tap',x={})=>sealQualification(body(f,x));
+const authority=(evaluate=yes)=>createQualificationAuthority({bindings,validatorArtifacts:[v],evaluate});
+test('six independently issued faces verify in fixed order',()=>{const a=authority(),input=Object.fromEntries([...FACE_ORDER].reverse().map(f=>{const r=record(f);a.management.issue(r);return [f,r];}));const r=a.verifier.checkSix(input);assert.equal(r.outcome,'VERIFIED');assert.deepEqual(r.face_commitments,FACE_ORDER.map(f=>input[f].face_commitment));});
+test('fabricated valid hashes reject',()=>assert.equal(authority().verifier.checkSix(Object.fromEntries(FACE_ORDER.map(f=>[f,record(f)]))).outcome,'REJECTED'));
+for(const [name,x] of [['outcome',{outcome:'REJECTED'}],['false predicate',{predicate_results:{...yes(),A:false}}],['empty predicates',{predicate_results:{}}],['missing evidence',{alternate_evidence_digest:null}],['negative tick',{logical_tick:-1}],['NaN',{logical_tick:NaN}],['unsafe tick',{logical_tick:2**53}],['fraction',{logical_tick:0.5}],['bad digest',{geometry_digest:'bad'}],['live write',{live_write_performed:true}],['version',{contract_version:'unknown'}],['extra',{extra:true}]])test(`schema rejects ${name}`,()=>assert.throws(()=>sealQualification(body('Tap',x))));
+test('missing field rejects',()=>{const b=body();delete b.input_digest;assert.throws(()=>sealQualification(b));});
+test('inherited fields reject',()=>assert.throws(()=>sealQualification(Object.assign(Object.create({x:1}),body()))));
+test('getter rejected without invocation',()=>{const b=body();Object.defineProperty(b,'event_id',{enumerable:true,get(){throw Error('invoked');}});assert.throws(()=>sealQualification(b),/INVALID_QUALIFICATION_BODY/);});
+test('symbol rejects',()=>{const b=body();b[Symbol('x')]=true;assert.throws(()=>sealQualification(b));});
+test('tamper rejects',()=>assert.equal(validateQualification({...record(),output_digest:'c'.repeat(128)}).reason,'COMMITMENT_MISMATCH'));
+test('wrong session rejects',()=>assert.throws(()=>authority().management.issue(record('Tap',{session_id:'other'})),/BINDING/));
+test('unapproved validator rejects',()=>assert.throws(()=>authority().management.issue(record('Tap',{validator_artifact_digest:h})),/VALIDATOR/));
+test('independent evaluator refusal rejects',()=>assert.throws(()=>authority(()=>({...yes(),R:false})).management.issue(record()),/INDEPENDENT/));
+test('async evaluator not accepted',()=>assert.throws(()=>authority(async()=>yes()).management.issue(record()),/INDEPENDENT/));
+test('replay rejects',()=>{const a=authority(),r=record();a.management.issue(r);assert.throws(()=>a.management.issue(r),/REPLAY/);});
+test('stale tick rejects',()=>{const a=authority();a.management.issue(record());assert.throws(()=>a.management.issue(record('Tap',{event_id:'new'})),/STALE/);});
+test('new selection supersedes old',()=>{const a=authority(),old=record();a.management.issue(old);const next=record('Tap',{event_id:'new',logical_tick:1});a.management.issue(next);assert.equal(a.verifier.verify(old).reason,'STATUS_SUPERSEDED');assert.equal(a.verifier.verify(next).ok,true);});
+for(const s of ['revoked','invalidated'])test(`${s} is terminal`,()=>{const a=authority(),r=record();a.management.issue(r);a.management.setStatus(r.face_commitment,s);assert.equal(a.verifier.verify(r).reason,`STATUS_${s.toUpperCase()}`);assert.throws(()=>a.management.setStatus(r.face_commitment,s),/TERMINAL/);});
+test('inactive session rejects',()=>{const a=authority(),r=record();a.management.issue(r);a.management.deactivate();assert.equal(a.verifier.verify(r).reason,'SESSION_INACTIVE');});
+test('withdrawn validator rejects',()=>{const a=authority(),r=record();a.management.issue(r);a.management.disapproveValidator(v);assert.equal(a.verifier.verify(r).reason,'VALIDATOR_NOT_APPROVED');});
+test('missing face blocks',()=>assert.equal(authority().verifier.checkSix({}).outcome,'BLOCKED'));
+test('unexpected face rejects',()=>assert.equal(authority().verifier.checkSix({Other:record()}).outcome,'REJECTED'));
+test('mixed missing/revoked diagnostics',()=>{const a=authority(),r=record();a.management.issue(r);a.management.setStatus(r.face_commitment,'revoked');const result=a.verifier.checkSix({Tap:r});assert.equal(result.outcome,'REJECTED');assert.ok(result.reason_codes.includes('STATUS_REVOKED:Tap'));assert.ok(result.reason_codes.includes('MISSING_FACE:Engine'));});
+test('swapped slot rejects',()=>{const a=authority(),r=record();a.management.issue(r);assert.ok(a.verifier.checkSix({Surface:r}).reason_codes.includes('FACE_ID_MISMATCH:Surface'));});
+test('records frozen',()=>{const r=authority().management.issue(record());assert.throws(()=>{r.event_id='bad';});assert.throws(()=>{r.predicate_results.S=false;});});
+test('verifier has no management',()=>assert.deepEqual(Object.keys(authority().verifier).sort(),['checkSix','verify']));
+test('reentrant authority change rejects',()=>{let a;a=authority(()=>{a.management.deactivate();return yes();});assert.throws(()=>a.management.issue(record()),/AUTHORITY_CHANGED/);});
+
+test("independent Python known-answer digest",()=>assert.equal(record().face_commitment,"85a4337093c5981439c80ed1d0278cf41987f1386f41adbbf9ee1f7c4d42a0609a66d204ea2b42e8b8fff4de683fcae7629f01f5135214ee2df75aea0ee71119"));
