@@ -4,19 +4,28 @@
     {
       "src": "scandoc_page.py",
       "use": "@vercel/python",
-      "config": { "includeFiles": "scandoc/**" }
+      "config": {
+        "includeFiles": "scandoc/**"
+      }
     },
     {
       "src": "main.py",
       "use": "@vercel/python",
       "config": {
         "framework": "fastapi",
-        "buildCommand": "cp -R ../src/. src/ && cp ../package.json package.json"
+        "buildCommand": "cp -R ../src/. src/ && cp ../package.json package.json",
+        "includeFiles": "portal/**"
       }
     }
   ],
   "routes": [
-    { "src": "/scandoc(/.*)?", "dest": "/scandoc_page.py" },
-    { "src": "/(.*)", "dest": "/main.py" }
+    {
+      "src": "/scandoc(/.*)?",
+      "dest": "/scandoc_page.py"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/main.py"
+    }
   ]
 }

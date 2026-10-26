@@ -15,9 +15,10 @@ BACKEND = ROOT / "backend"
 
 def copy_backend(destination):
     destination.mkdir(parents=True)
-    for name in ("main.py", "scandoc_page.py"):
+    for name in ("main.py", "scandoc_page.py", "integration_page.py", "audit_geometry.py", "trajectory_contract.py"):
         shutil.copy2(BACKEND / name, destination / name)
     shutil.copytree(BACKEND / "scandoc", destination / "scandoc")
+    shutil.copytree(BACKEND / "portal", destination / "portal")
 
 
 def test_missing_runtime_source_fails_closed(tmp_path):

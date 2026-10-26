@@ -1,0 +1,50 @@
+{
+  "schema": "waxtablet-integration-sources/1",
+  "cloudburnerBase": "bbc89d21210276d40b722370e8307beba762c055",
+  "auditBaseline": {
+    "repository": "harleycameron-rgb/Tentacled-sphere",
+    "commit": "b6c1bd189209f7221b698f6d565bcc60a31d8907"
+  },
+  "trajectoryContract": {
+    "repository": "harleycameron-rgb/Tentacled-sphere",
+    "commit": "94f0a25c01582c567497ae1055d78897ec5e91c4"
+  },
+  "terminalSourceDeployment": "dpl_4zW96GjjCVyQVrHqunz3w9Sn8MJs",
+  "auditSourceDeployment": "dpl_9ZrtM8QBnjCmA4zEacuYaMErM2dR",
+  "liveGate": "CLOSED",
+  "sphereWrites": false,
+  "receiptTrust": "UNVERIFIED",
+  "integration": "Same-origin preloaded clients and isolated pure research API; no production authority wiring",
+  "files": {
+    "terminal/geometry.html": "d7ad7f61f0d0b95a2cc89525821cf9ed6ce759dfeeba1e875c204015067ffb6a",
+    "terminal/index.html": "dcf049c3aa887450bd46a08a6032514867a0852e58dc27bf334c4a119223ceb0",
+    "hub/style.css": "92bce8cc97eed9fb4378f6ec71e622064161be08d167ed4cf7fb4c699bf64ab8",
+    "hub/index.html": "1b4ef2e75815389f6fe4a1199c18f8f5d5ccfdf4e289261869395e12b08c5600",
+    "hub/app.js": "83ff385302b4c6a48930a68e7b9508f5e64083c3d87fb67fd5c7885ed6d62e2a",
+    "audit/index.html": "67d7108792aab1b9eca5f9d81fc081441d9f23917173fd480ad560c2654a9539",
+    "audit/audit.js": "efb3206ff8228c90c6bdbdc76b11c2bb5d8e1f0d0adb361b6774d9d4b9831719",
+    "terminal/modules/SURFACE.html": "a866173a7b2abc147fd83231d2909354a09f92729c18453a53129826bda97757",
+    "terminal/modules/HABITAT.html": "64d6c7e1bc6e376efad442a19850b199caa716de1b9c69c1ee2bc469b8261a18",
+    "terminal/modules/SPIRITLEVEL.html": "5a2866598dfe8b08fa86c7bc9082ae047cf82cba425e3ef4dd0dfd946d5365dd",
+    "terminal/modules/LINEAGE.html": "6551ea223d0df5bc99bb0295b0ac0a5c8a486a08d5c52c16fa4aa712853a0a74",
+    "terminal/modules/TIME.html": "98a9f64ba373804be29e3ebb8c25730b1a4e26b24c942d6e7dae75949350f29b",
+    "terminal/modules/app.js": "b26f42ea8dc5f20337f5da5e3caec9512eff7b979c2aa40c01ceda9c2d9ab6e6",
+    "terminal/modules/SPACE.html": "4ada225d86ecd6c2e6e43a9cd3ac329163c5fc50144d41d98523ca6a072262e6",
+    "terminal/modules/GAIN.html": "78b8d0c5fffb2c29800047e20a095d21c22ae81dfee1c76d1aa2eb6a45dff7df",
+    "terminal/modules/TAP.html": "2b1318e1550ee5a5660323be11e727dc70910d16e1250a482ec3560d70c322ee",
+    "terminal/modules/app.css": "69da5bab30292b24c35dbe9f67c78347faf73d4c9b44a291d6830cd82b36810d",
+    "audit/apps/space.html": "320054d894983817f642a394b6bc52ea9c1a71d5e9481d364527fd38006b329b",
+    "audit/apps/time.html": "b99da2803123b55fc43e4d055aae1bd31e210e37caa59136ac70dc1fe4f7acfc",
+    "audit/apps/tap.html": "a18acb275974e571b6c8fed96061cbff24bf8246399c3158ca8b403c5a0b3106",
+    "audit/apps/lineage.html": "76ecc564b38f9e92c888b44c164bfc91a8ffe395e57195165f23db12110292af",
+    "audit/apps/spiritlevel.html": "3368075cc01c71aa10f6513304f3777cded9afa4f7e8ec86df261f773f217ff7",
+    "audit/apps/surface.html": "acc9d0d8655c19242ae88be9083b97db47a87c8172a7763853a3c60f4a489423",
+    "audit/apps/gain.html": "89a385614c5ce1bb39fe2d09e1444ecb81367789a3b6df169b6898461f71afc1",
+    "audit/apps/habitat.html": "0bcba42ba22ed3132a3287e0e228c20b490747d36c16e4895fce89ea2155bbfc",
+    "audit/web/protocol.js": "1890b596c05bce6f0cb21c4796ef288dafa383fda0a836e051555e21a0283bf5",
+    "audit/web/audio.js": "45911bd62a1805c506f2f20e3f5bf0dbe946210559a0b1b842eccfa98de3e7e6",
+    "audit/web/style.css": "71b1456d2276cba1a1db4fa5f8eeb5722f4ace92c92390833b3bac04099c0093",
+    "audit/web/app.js": "9be2004e27ad6f21d10dde9391e468031b9dfe20ece959a6b6cb45bab5cfa8e9",
+    "audit/web/geometry.js": "b649eff9b8f8175c7444a293a08ff97a5ebbe4dad25753817859023fad1e4036"
+  }
+}
