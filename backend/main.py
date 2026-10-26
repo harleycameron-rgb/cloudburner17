@@ -16,8 +16,10 @@ from fastapi.responses import HTMLResponse
 
 if __package__:
     from .scandoc_page import router as scandoc_router
+    from .integration_page import router as integration_router, portal as portal_home
 else:
     from scandoc_page import router as scandoc_router
+    from integration_page import router as integration_router, portal as portal_home
 
 from admission import evaluate_submission
 from supervisor import Supervisor
@@ -55,6 +57,11 @@ async def lifespan(app):
 
 app = FastAPI(lifespan=lifespan)
 app.include_router(scandoc_router)
+app.include_router(integration_router)
+
+@app.get("/", response_class=HTMLResponse)
+async def integrated_home():
+    return await portal_home()
 
 
 @app.get("/runtime")
@@ -73,7 +80,7 @@ async def tentacled_sphere(seed: float = 1.0, delta: float = 0.1137):
         raise HTTPException(status_code=422, detail=str(error)) from error
 
 
-@app.get("/", response_class=HTMLResponse)
+@app.get("/supervisor", response_class=HTMLResponse)
 def frontend():
     return """<!doctype html>
 <html><head><meta charset="utf-8"><title>CLOUDBURNER17</title></head>

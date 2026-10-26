@@ -31,8 +31,8 @@ def test_tentacle_sphere_is_an_accessible_static_introduction():
     assert client.post("/tentacle-sphere").status_code == 405
 
 
-def test_homepage_links_to_introduction_without_replacing_console():
-    response = TestClient(app).get("/")
+def test_supervisor_console_remains_available_beside_integrated_home():
+    response = TestClient(app).get("/supervisor")
     assert response.status_code == 200
     assert '<a href="/tentacle-sphere">Tentacle Sphere</a>' in response.text
     assert "<h1>CLOUDBURNER17 Supervisor</h1>" in response.text
