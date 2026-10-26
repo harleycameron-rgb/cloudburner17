@@ -1,0 +1,40 @@
+name: Persistent authority integration
+on:
+  pull_request:
+    paths:
+      - 'infra/authority/**'
+      - 'tests/test_persistent_authority.py'
+      - '.github/workflows/persistent-authority.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16.6
+        env:
+          POSTGRES_USER: authority_test
+          POSTGRES_PASSWORD: local_ci_only
+          POSTGRES_DB: authority_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U authority_test -d authority_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      WAXTABLET_TEST_POSTGRES_DSN: 'host=127.0.0.1 port=5432 dbname=authority_test user=authority_test password=local_ci_only'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install psycopg2-binary==2.9.10
+      - name: Require disposable PostgreSQL
+        run: test -n "$WAXTABLET_TEST_POSTGRES_DSN"
+      - name: Run both database backends and encoding vectors
+        run: python -m unittest discover -s tests -p test_persistent_authority.py -v
