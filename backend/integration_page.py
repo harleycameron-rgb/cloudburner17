@@ -79,6 +79,10 @@ async def research_run(request:Request):
         record={'schema':'waxtablet-research-run/1','kind':'supplied-sample-research','separation':separation,'result':result,
           'liveGate':'CLOSED','sphereWrites':False,'receiptTrust':'UNVERIFIED','stored':False}
         canonical=json.dumps(record,sort_keys=True,separators=(',',':'),allow_nan=False).encode()
-        return {**record,'sha512':hashlib.sha512(b'waxtablet-research-run/1\0'+canonical).hexdigest()}
+        # Return the exact hashed bytes as text: Python and JavaScript serialize
+        # floats differently (e.g. 1.0 vs 1). Consumers must check BOTH the
+        # digest and equality of this record to the displayed envelope.
+        return {**record,'canonicalRecord':canonical.decode('utf-8'),
+          'sha512':hashlib.sha512(b'waxtablet-research-run/1\0'+canonical).hexdigest()}
     except (ValueError,TypeError,OverflowError,KeyError) as error:
         raise HTTPException(422,str(error)) from error
