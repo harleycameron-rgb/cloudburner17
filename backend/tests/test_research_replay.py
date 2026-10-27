@@ -48,3 +48,15 @@ def test_display_and_digest_tampering_rejected():
 def test_ambiguous_json_rejected():
     for text in ('{"legs":{},"legs":{}}','{"x":NaN}'):
         with pytest.raises(ValueError): strict_json(text)
+
+
+def test_javascript_integer_transport_is_accepted_without_conflating_booleans():
+    def js_numbers(value):
+        if isinstance(value, dict): return {k:js_numbers(v) for k,v in value.items()}
+        if isinstance(value, list): return [js_numbers(v) for v in value]
+        if type(value) is float and value.is_integer(): return int(value)
+        return value
+    r=js_numbers(envelope(record()))
+    assert verify_research_receipt(r)['replayConsistent']
+    r['sphereWrites']=0
+    with pytest.raises(ValueError): verify_research_receipt(r)

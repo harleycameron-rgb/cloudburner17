@@ -29,6 +29,19 @@ def canonical(value):
     return json.dumps(value, sort_keys=True, separators=(',', ':'), allow_nan=False)
 
 
+def equivalent(left, right):
+    """JSON semantic equality; JS collapses 0.0 to 0, but false is not 0."""
+    if type(left) in (int, float) and type(right) in (int, float):
+        return left == right
+    if type(left) is not type(right):
+        return False
+    if isinstance(left, dict):
+        return left.keys() == right.keys() and all(equivalent(left[k], right[k]) for k in left)
+    if isinstance(left, list):
+        return len(left) == len(right) and all(equivalent(a, b) for a, b in zip(left, right))
+    return left == right
+
+
 def build_record(legs, tolerance, samples):
     separation = separate(legs, tolerance=tolerance)
     return {'schema':'waxtablet-research-run/1','kind':'supplied-sample-research',
@@ -49,8 +62,8 @@ def verify_research_receipt(receipt):
         raise ValueError('Receipt SHA-512 mismatch')
     record = strict_json(text)
     displayed = {key:receipt[key] for key in FIELDS}
-    # JSON comparison distinguishes false from 0 and arrays from objects.
-    if canonical(record) != canonical(displayed):
+    # Compare transport values without conflating booleans with numbers.
+    if not equivalent(record, displayed):
         raise ValueError('Receipt differs from canonical record')
     try:
         separation, result = record['separation'], record['result']
