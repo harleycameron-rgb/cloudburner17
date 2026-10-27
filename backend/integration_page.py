@@ -7,9 +7,11 @@ from fastapi.responses import Response, RedirectResponse
 if __package__:
     from .audit_geometry import geometry
     from .trajectory_contract import separate, trajectory
+    from .research_receipt import build_record, strict_json, verify_research_receipt, MAX_BYTES
 else:
     from audit_geometry import geometry
     from trajectory_contract import separate, trajectory
+    from research_receipt import build_record, strict_json, verify_research_receipt, MAX_BYTES
 
 ROOT = Path(__file__).parent / 'portal'
 ASSETS = {str(p.relative_to(ROOT)): p.read_text(encoding='utf-8') for p in ROOT.rglob('*') if p.is_file()}
@@ -64,20 +66,17 @@ async def integration_status():
     return {'schema':'waxtablet-integration/1','mode':'research','liveGate':'CLOSED','sphereWrites':False,
       'clients':{'terminal': '/terminal','audit':'/audit','supervisor':'/supervisor','scandoc':'/scandoc'},
       'geometryContracts':{'audit':'/api/tentacled-sphere','cloudburner':'/tentacled-sphere'},
-      'trajectory':'/integration/research-run','assetsLoaded':len(ASSETS),'receiptTrust':'UNVERIFIED'}
+      'trajectory':'/integration/research-run','verifyResearch':'/integration/verify-research-run','assetsLoaded':len(ASSETS),'receiptTrust':'UNVERIFIED'}
 
 @router.post('/integration/research-run')
 async def research_run(request:Request):
     raw=await request.body()
     if len(raw)>1048576: raise HTTPException(413,'Maximum request size is 1 MiB')
     try:
-        payload=json.loads(raw,parse_constant=lambda _: (_ for _ in ()).throw(ValueError('Nonfinite JSON')))
+        payload=strict_json(raw)
         if not isinstance(payload,dict) or set(payload)!={'legs','tolerance','samples'}: raise ValueError('Expected legs, tolerance and samples')
         if not isinstance(payload['samples'],list) or len(payload['samples'])>512: raise ValueError('Maximum 512 samples')
-        separation=separate(payload['legs'],tolerance=payload['tolerance'])
-        result=trajectory(separation,payload['samples'])
-        record={'schema':'waxtablet-research-run/1','kind':'supplied-sample-research','separation':separation,'result':result,
-          'liveGate':'CLOSED','sphereWrites':False,'receiptTrust':'UNVERIFIED','stored':False}
+        record=build_record(payload['legs'],payload['tolerance'],payload['samples'])
         canonical=json.dumps(record,sort_keys=True,separators=(',',':'),allow_nan=False).encode()
         # Return the exact hashed bytes as text: Python and JavaScript serialize
         # floats differently (e.g. 1.0 vs 1). Consumers must check BOTH the
@@ -85,4 +84,14 @@ async def research_run(request:Request):
         return {**record,'canonicalRecord':canonical.decode('utf-8'),
           'sha512':hashlib.sha512(b'waxtablet-research-run/1\0'+canonical).hexdigest()}
     except (ValueError,TypeError,OverflowError,KeyError) as error:
+        raise HTTPException(422,str(error)) from error
+
+
+@router.post('/integration/verify-research-run')
+async def verify_research_run(request:Request):
+    raw=await request.body()
+    if len(raw)>MAX_BYTES: raise HTTPException(413,'Maximum receipt size is 2 MiB')
+    try:
+        return verify_research_receipt(strict_json(raw))
+    except (ValueError,TypeError,OverflowError,RecursionError) as error:
         raise HTTPException(422,str(error)) from error

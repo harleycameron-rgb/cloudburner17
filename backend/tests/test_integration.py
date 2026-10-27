@@ -26,6 +26,16 @@ with TestClient(app) as c:
     payload={'legs':{name:[i*.01,0,0] for i,name in enumerate(('tap','surface','gain','habitat','engine','business'))},'tolerance':.5,'samples':[{'tick':0,'center':[0,0,0]},{'tick':1,'center':[.1,0,0]}]}
     d=c.post('/integration/research-run',json=payload)
     assert d.status_code==200,d.text
+    checked=c.post('/integration/verify-research-run',json=d.json())
+    assert checked.status_code==200,checked.text
+    assert checked.json()['replayConsistent'] is True
+    forged=d.json();forged['result']['origin']=[0,0,0]
+    unsigned={k:v for k,v in forged.items() if k not in ('sha512','canonicalRecord')}
+    forged['canonicalRecord']=json.dumps(unsigned,sort_keys=True,separators=(',',':'))
+    forged['sha512']=hashlib.sha512(b'waxtablet-research-run/1\0'+forged['canonicalRecord'].encode()).hexdigest()
+    assert c.post('/integration/verify-research-run',json=forged).status_code==422
+    assert c.post('/integration/verify-research-run',content='x'*2097153).status_code==413
+    assert c.post('/integration/research-run',content='{"legs":{},"legs":{}}').status_code==422
     d=d.json();digest=d.pop('sha512');canonical=d.pop('canonicalRecord')
     assert json.loads(canonical)==d
     assert digest==hashlib.sha512(b'waxtablet-research-run/1\0'.replace(b'\\0',b'\0')+json.dumps(d,sort_keys=True,separators=(',',':'),allow_nan=False).encode()).hexdigest()
