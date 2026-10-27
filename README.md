@@ -331,3 +331,34 @@ runtime contract. The application container has no mounted data volume.
 The requested license designation is **Zero-Data Open Architecture License
 (ZDOAL)**. No license text has been provided or added; this designation alone
 does not grant licensing permissions.
+
+### Research receipt integrity and local replay
+
+The integrated workspace verifies each `/integration/research-run` receipt in
+browser Web Crypto before plotting it or enabling download. The response adds
+`canonicalRecord`, the exact UTF-8 JSON record hashed by the Python endpoint.
+The SHA-512 input is the domain `waxtablet-research-run/1` followed by a NUL byte
+and those record bytes. The verifier also compares the parsed record against
+all displayed envelope fields; hashing an unrelated record cannot validate a
+changed trajectory. Exact bytes avoid Python/JavaScript float-serialization
+mismatches. The canonical record and digest are transport evidence outside the
+hashed record itself.
+
+Use **Check a saved research receipt locally** to inspect a downloaded JSON
+receipt without uploading it. Imports are limited to 2 MiB. Invalid digests,
+changed fields, unsupported envelopes, unsafe gate claims and malformed sample
+sequences are blocked and clear any previous plot and download. Older receipts
+without exact canonical bytes cannot be verified by this checker; the checker
+does not silently reconstruct or upgrade them. Reset invalidates pending checks.
+
+These checks establish content consistency only. Receipts remain unsigned,
+UNVERIFIED research results with the live gate CLOSED and sphere writes disabled.
+An issuer can construct a different record and hash; this is not trusted
+qualification, independent proof of execution, or authentication. The verifier
+requires Web Crypto in a secure context (HTTPS or localhost).
+
+Validation: `node --test tests/research_receipt.test.js` covers tampering,
+closed-gate enforcement, serialization and asynchronous state isolation.
+`python -B -m pytest -p no:cacheprovider backend/tests/test_integration.py` checks
+an actual Python API receipt with the JavaScript verifier, outside the engine's
+filesystem guard. These tests do not certify phone sensors or physical audio.
