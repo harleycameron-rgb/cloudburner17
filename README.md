@@ -362,3 +362,26 @@ closed-gate enforcement, serialization and asynchronous state isolation.
 `python -B -m pytest -p no:cacheprovider backend/tests/test_integration.py` checks
 an actual Python API receipt with the JavaScript verifier, outside the engine's
 filesystem guard. These tests do not certify phone sensors or physical audio.
+
+### Research replay verification
+
+`POST /integration/verify-research-run` accepts a downloaded research receipt
+(up to 2 MiB). It checks the SHA-512 and exact record/envelope agreement, then
+recomputes six-leg separation and the supplied-sample trajectory using the
+existing contract. A rehashed receipt with inconsistent centres, commitments,
+origins, leg membership or gate claims is rejected with HTTP 422. Duplicate
+JSON keys are rejected on both research endpoints.
+
+The workspace checks this replay endpoint before displaying a newly generated
+run. Saved-file imports remain browser-local content checks with no upload.
+The replay result reports `contentIntegrity` and `replayConsistent`, while
+`receiptTrust` remains `UNVERIFIED`, the live gate stays `CLOSED`, and no sphere
+writes or storage occur. This is deterministic consistency checking by the same
+application, not independent execution proof, signature verification, physical
+validation, trusted time, or causal derivation of the supplied trajectory.
+Anyone can construct a different internally consistent unsigned record.
+
+Run `python -B -m pytest backend/tests/test_research_replay.py
+backend/tests/test_integration.py backend/tests/test_vercel_runtime.py` and
+`node --test tests/research_receipt.test.js` to exercise replay, rehashed
+forgeries, API and browser receipt interoperability, and deployment packaging.

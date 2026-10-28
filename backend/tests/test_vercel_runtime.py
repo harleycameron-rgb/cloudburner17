@@ -15,7 +15,7 @@ BACKEND = ROOT / "backend"
 
 def copy_backend(destination):
     destination.mkdir(parents=True)
-    for name in ("main.py", "scandoc_page.py", "integration_page.py", "audit_geometry.py", "trajectory_contract.py"):
+    for name in ("main.py", "scandoc_page.py", "integration_page.py", "audit_geometry.py", "trajectory_contract.py", "research_receipt.py"):
         shutil.copy2(BACKEND / name, destination / name)
     shutil.copytree(BACKEND / "scandoc", destination / "scandoc")
     shutil.copytree(BACKEND / "portal", destination / "portal")
