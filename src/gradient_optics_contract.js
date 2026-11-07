@@ -43,7 +43,8 @@ export function validateGradientState(state, expected) {
       state.firingId!==expected.firingId || state.topologyCommitment!==expected.topologyCommitment) throw new TypeError("Firing/topology mismatch");
   exactKeys(state.input,["inputId","mode","domain","provenance","accessState"]);
   const i=state.input;
-  if (typeof i.inputId!=="string" || !i.inputId || !(i.mode in DOMAINS) ||
+  if (typeof i.inputId!=="string" || !i.inputId || typeof i.mode!=="string" ||
+      !Object.hasOwn(DOMAINS,i.mode) ||
       i.domain!==DOMAINS[i.mode] || i.provenance!==PROVENANCE[i.mode] ||
       !["MANUAL","REQUESTING","AVAILABLE","DENIED_OR_UNAVAILABLE","INTERRUPTED"].includes(i.accessState)) throw new TypeError("Invalid input provenance");
   validateParameters(state.sharedPreset);

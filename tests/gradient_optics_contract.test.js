@@ -24,6 +24,13 @@ test("rejects provenance spoofing",()=>{
   assert.throws(()=>validateGradientState(s,expected));
  }
 });
+test("rejects non-string and inherited input modes",()=>{
+ const arrayMode=state();arrayMode.input.mode=["SYNTHETIC_GEOMETRY"];
+ assert.throws(()=>validateGradientState(arrayMode,expected));
+ const inheritedMode=state();inheritedMode.input.mode="constructor";
+ inheritedMode.input.domain=Object;inheritedMode.input.provenance=Object;
+ assert.throws(()=>validateGradientState(inheritedMode,expected));
+});
 test("rejects NaN, Infinity, out-of-range and unknown settings",()=>{
  for(const v of [NaN,Infinity,-1,2]) assert.throws(()=>validateParameters({...preset,sensitivity:v}));
  assert.throws(()=>validateParameters({...preset,unexpected:1}));
