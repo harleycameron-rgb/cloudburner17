@@ -142,3 +142,110 @@ $("proposal").addEventListener("click", async () => {
   } catch (error) { invalidate(error); }
   finally { setPending(false); }
 });
+
+
+/* Parallel Chaos Lab: local observer-model study. NO coupling to native runtime.
+ * The sole read-only source is a deterministic fixed reference field.
+ * 'Candidate' means threshold discrepancy, never a proved false invariant. */
+(() => {
+  const el = id => document.getElementById(id);
+  const source = el("lab-source"), sandbox = el("lab-sandbox");
+  if (!source || !sandbox) return;
+  const ctxA = source.getContext("2d"), ctxB = sandbox.getContext("2d");
+  const N = 144;
+  const baseline = Object.freeze(Array.from({length:N},(_,i) => {
+    const t=i/(N-1);
+    return 0.5+0.19*Math.sin(2*Math.PI*t*2)+0.08*Math.sin(2*Math.PI*t*7);
+  }));
+  let snapshot=null, splatted=false;
+  const options=()=>({
+    aperture:Number(el("lab-aperture").value)/100,
+    distortion:Number(el("lab-distortion").value)/100,
+    threshold:Number(el("lab-threshold").value)/100
+  });
+  function observed(opt) {
+    return baseline.map((v,i)=>{
+      const t=i/(N-1);
+      // deterministic observer-side model distortion, never a source mutation
+      return Math.min(1,Math.max(0,v+opt.distortion*(0.18*Math.sin(18*Math.PI*t+0.4)+0.10*Math.sin(37*Math.PI*t))));
+    });
+  }
+  function setup(ctx){
+    const {width:w,height:h}=ctx.canvas;
+    ctx.clearRect(0,0,w,h);ctx.fillStyle="#05101e";ctx.fillRect(0,0,w,h);
+    ctx.strokeStyle="#203b55";ctx.lineWidth=1;
+    for(let j=1;j<5;j++){ctx.beginPath();ctx.moveTo(0,h*j/5);ctx.lineTo(w,h*j/5);ctx.stroke();}
+  }
+  function trace(ctx,series,color,clip=null){
+    const w=ctx.canvas.width,h=ctx.canvas.height;
+    ctx.save();if(clip){ctx.beginPath();ctx.rect(clip[0],0,clip[1],h);ctx.clip();}
+    ctx.strokeStyle=color;ctx.lineWidth=2.5;ctx.beginPath();
+    series.forEach((v,i)=>{const x=10+i/(N-1)*(w-20),y=(1-v)*(h-32)+16;if(!i)ctx.moveTo(x,y);else ctx.lineTo(x,y);});
+    ctx.stroke();ctx.restore();
+  }
+  function metrics(observation,opt){
+    const residuals=observation.map((v,i)=>Math.abs(v-baseline[i]));
+    const candidates=residuals.filter(x=>x>opt.threshold).length;
+    return {candidate_mismatches:candidates, total_samples:N,
+      unresolved:candidates, confirmed_false_invariants:0,
+      max_deviation:Math.max(...residuals).toFixed(4)};
+  }
+  function draw(){
+    const opt=options(),w=source.width;
+    setup(ctxA);setup(ctxB);
+    trace(ctxA,baseline,"#63d5f4");
+    const paneWidth=w*opt.aperture, left=(w-paneWidth)/2;
+    ctxA.fillStyle="rgba(5,16,30,.84)";
+    ctxA.fillRect(0,0,left,source.height);ctxA.fillRect(left+paneWidth,0,w,source.height);
+    ctxA.strokeStyle="#ebbe7f";ctxA.strokeRect(left,2,paneWidth,source.height-4);
+    ctxA.fillStyle="#d8f3ff";ctxA.font="14px monospace";ctxA.fillText("SENTINEL → READ ONLY",12,24);
+    ctxB.font="14px monospace";ctxB.fillStyle="#cfb3ef";ctxB.fillText("PARALLEL / NO CORE WRITE",12,24);
+    if(snapshot){
+      const optSnap=snapshot.options, rendered=observed(optSnap);
+      trace(ctxB,rendered,"#b48df4");
+      if(splatted){
+        const r=metrics(rendered,optSnap),h=sandbox.height;
+        for(let i=0;i<N;i++){
+          if(Math.abs(rendered[i]-baseline[i])<=optSnap.threshold)continue;
+          const x=10+i/(N-1)*(sandbox.width-20);
+          ctxB.strokeStyle=i%2?"#fa9a61":"#e35df2";
+          ctxB.beginPath();ctxB.moveTo(x,(1-rendered[i])*(h-32)+16);
+          ctxB.lineTo(x+(i%5-2)*6,(1-baseline[i])*(h-32)+16);
+          ctxB.stroke();
+        }
+        el("lab-result").textContent=JSON.stringify({
+          schema:"scandoc-observer-sandbox-preview/1", classification:"UNRESOLVED",
+          ...r, source_modified:false, native_gate:"CLOSED",
+          interpretation:"Discrepancy counts are illustrative threshold candidates, not verified false invariants"
+        },null,2);
+      }
+    }
+  }
+  for(const [id,output,fmt] of [
+    ["lab-aperture","lab-aperture-value",v=>v+"%"],
+    ["lab-distortion","lab-distortion-value",v=>v+"%"],
+    ["lab-threshold","lab-threshold-value",v=>(v/100).toFixed(2)]
+  ])el(id).addEventListener("input",()=>{
+    el(output).textContent=fmt(Number(el(id).value));
+    draw();
+  });
+  el("lab-capture").addEventListener("click",()=>{
+    snapshot={options:options()};splatted=false;
+    el("lab-status").textContent="Observation copied into parallel sandbox; no source mutation.";
+    el("lab-result").textContent="Captured projection. Double Splat may compare it to the fixed reference.";
+    draw();
+  });
+  el("lab-splat").addEventListener("click",()=>{
+    if(!snapshot){el("lab-status").textContent="Capture an observation first.";return;}
+    splatted=true;
+    el("lab-status").textContent="Sandbox comparison complete; candidate discrepancies remain UNRESOLVED.";
+    draw();
+  });
+  el("lab-reset").addEventListener("click",()=>{
+    snapshot=null;splatted=false;
+    el("lab-status").textContent="Sandbox cleared. Sentinel lineage unchanged.";
+    el("lab-result").textContent="Candidate count: unresolved · confirmed false invariants: 0 · native firing: disabled.";
+    draw();
+  });
+  draw();
+})();

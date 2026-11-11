@@ -7,3 +7,19 @@ canvas { display: block; width: 100%; border: 1px solid #6680a0; margin: 1rem 0;
 textarea { display: block; box-sizing: border-box; width: 100%; margin: .5rem 0; }
 pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 36rem; overflow: auto; }
 a { color: #a9d0ff; }
+
+/* Human-frame glass and separate, browser-local observer-sandbox study. */
+.lab{margin:1.5rem 0;padding:1rem;border:1px solid #456782;border-radius:14px;background:#081323}
+.lab-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.lab-pane{min-width:0;border:1px solid #31526d;border-radius:10px;padding:12px;background:#0b192b}
+.lab-pane h3{margin:0 0 6px;color:#b4eaff}
+.lab-pane p{color:#b9c9db;font-size:.85rem}
+.lab-pane canvas{height:auto;max-width:100%;aspect-ratio:12/7;margin:8px 0;background:#040d18}
+.glass-pane{box-shadow:inset 0 0 32px rgba(122,210,240,.13);background:linear-gradient(125deg,rgba(173,235,253,.08),#0b192b 37%)}
+#lab-source{pointer-events:none;touch-action:none;user-select:none}
+.lab-controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem;margin:1rem 0}
+.lab-controls label{display:grid;gap:5px;font-size:.85rem;color:#d7e7f2}
+.lab-controls input{width:100%;accent-color:#80e2f4}
+.lab-actions{display:flex;flex-wrap:wrap;gap:6px}
+#lab-result{background:#050f1b;padding:12px;border-radius:8px;font-size:.8rem}
+@media(max-width:720px){.lab-grid,.lab-controls{grid-template-columns:1fr}}
