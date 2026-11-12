@@ -4,8 +4,11 @@ def test_canary_viewport_is_isolated():
     src=(ROOT/'backend/scandoc/root_canary_viewport.js').read_text()
     html=(ROOT/'backend/scandoc/index.html').read_text()
     app=(ROOT/'backend/scandoc/app.js').read_text()
-    assert "from '../../root_disruptor.mjs'" in src
+    assert "from './root_disruptor.mjs'" in src
     assert 'mountRootCanary();' in app
+    server=(ROOT/'backend/scandoc_page.py').read_text()
+    assert 'root_disruptor.mjs' in server
+    assert 'root_canary_viewport.js' in server
     assert 'root-canary-canvas' in html
     assert 'root-canary-inject' in html
     assert 'root-canary-clear' in html
