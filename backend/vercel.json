@@ -2,11 +2,16 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "builds": [
     {
-      "src": "scandoc_page.py",
-      "use": "@vercel/python",
-      "config": {
-        "includeFiles": "scandoc/**"
-      }
+      "src": "scandoc/index.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "scandoc/*.js",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "scandoc/*.css",
+      "use": "@vercel/static"
     },
     {
       "src": "main.py",
@@ -14,14 +19,25 @@
       "config": {
         "framework": "fastapi",
         "buildCommand": "cp -R ../src/. src/ && cp ../package.json package.json",
-        "includeFiles": "portal/**"
+        "includeFiles": "{portal/**,scandoc/**}"
       }
     }
   ],
   "routes": [
     {
-      "src": "/scandoc(/.*)?",
-      "dest": "/scandoc_page.py"
+      "src": "/scandoc/?",
+      "dest": "/scandoc/index.html",
+      "headers": {
+        "Content-Security-Policy": "default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'none'; img-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+        "X-Content-Type-Options": "nosniff"
+      }
+    },
+    {
+      "src": "/scandoc/(app\\.js|model\\.js|style\\.css)",
+      "dest": "/scandoc/$1",
+      "headers": {
+        "X-Content-Type-Options": "nosniff"
+      }
     },
     {
       "src": "/(.*)",
