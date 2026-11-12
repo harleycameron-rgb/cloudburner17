@@ -17,4 +17,12 @@ test('invalid geometry and gaps are detected, never promoted to supported',()=>{
  assert.deepEqual(x.anomalies.map(a=>a.code),['SEQUENCE_GAP','NONFINITE_GEOMETRY']);
  assert.equal(x.evidenceState,'UNKNOWN');
 });
+test('non-finite drift distances are reported instead of recorded',()=>{
+ const x=observeExterior([
+  {sequence:0,eventID:'left',position:[-1e308,0,0]},
+  {sequence:1,eventID:'right',position:[1e308,0,0]}
+ ]);
+ assert.deepEqual(x.drift,[]);
+ assert.deepEqual(x.anomalies,[{code:'NONFINITE_DRIFT',from:'left',to:'right'}]);
+});
 test('rejects invalid tolerances',()=>assert.throws(()=>observeExterior([], {tolerance:-1})));
