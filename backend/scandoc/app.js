@@ -152,6 +152,13 @@ $("proposal").addEventListener("click", async () => {
   const source = el("lab-source"), sandbox = el("lab-sandbox");
   if (!source || !sandbox) return;
   const ctxA = source.getContext("2d"), ctxB = sandbox.getContext("2d");
+  if (!ctxA || !ctxB) {
+    document.querySelectorAll(".lab input, .lab button").forEach(control => {
+      control.disabled = true;
+    });
+    el("lab-status").textContent = "Chaos Lab unavailable: a 2D canvas context could not be created.";
+    return;
+  }
   const N = 144;
   const baseline = Object.freeze(Array.from({length:N},(_,i) => {
     const t=i/(N-1);
