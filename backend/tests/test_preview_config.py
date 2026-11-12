@@ -32,5 +32,8 @@ def test_root_bundle_includes_all_preloaded_assets():
         },
     }
     bundled = {path.name for path in (ROOT / "backend" / "scandoc").iterdir()}
-    assert set(ASSETS) == {"index.html", "app.js", "model.js", "style.css"}
+    assert set(ASSETS) == {
+        "index.html", "app.js", "model.js", "style.css",
+        "root_canary_viewport.js", "root_disruptor.mjs",
+    }
     assert set(ASSETS) <= bundled
