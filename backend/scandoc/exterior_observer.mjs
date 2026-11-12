@@ -13,7 +13,7 @@ export function observeExterior(events, {tolerance=1e-9}={}) {
     if (event.sequence !== previous+1) anomalies.push({code:'SEQUENCE_GAP',eventID:event.eventID});
     previous=event.sequence;
     const p=event.position;
-    if (!Array.isArray(p) || p.length!==3 || !p.every(finite)) {
+    if (!Array.isArray(p) || p.length!==3 || !finite(p[0]) || !finite(p[1]) || !finite(p[2])) {
       anomalies.push({code:'NONFINITE_GEOMETRY',eventID:event.eventID}); continue;
     }
     trace.push({eventID:event.eventID,sequence:event.sequence,position:[...p]});

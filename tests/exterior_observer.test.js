@@ -17,6 +17,11 @@ test('invalid geometry and gaps are detected, never promoted to supported',()=>{
  assert.deepEqual(x.anomalies.map(a=>a.code),['SEQUENCE_GAP','NONFINITE_GEOMETRY']);
  assert.equal(x.evidenceState,'UNKNOWN');
 });
+test('sparse coordinates are rejected as invalid geometry',()=>{
+ const x=observeExterior([{sequence:0,eventID:'sparse',position:[1,,0]}]);
+ assert.deepEqual(x.trace,[]);
+ assert.deepEqual(x.anomalies,[{code:'NONFINITE_GEOMETRY',eventID:'sparse'}]);
+});
 test('non-finite drift distances are reported instead of recorded',()=>{
  const x=observeExterior([
   {sequence:0,eventID:'left',position:[-1e308,0,0]},
