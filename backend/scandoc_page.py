@@ -7,9 +7,11 @@ from fastapi.responses import HTMLResponse, RedirectResponse, Response
 # Preload before the full application's supervisor installs its filesystem guard.
 ASSETS = {
     name: (Path(__file__).parent / "scandoc" / name).read_text(encoding="utf-8")
-    for name in ("index.html", "app.js", "model.js", "style.css", "root_canary_viewport.js")
+    for name in (
+        "index.html", "app.js", "model.js", "style.css",
+        "root_canary_viewport.js", "root_disruptor.mjs",
+    )
 }
-ASSETS["root_disruptor.mjs"] = (Path(__file__).parent.parent / "root_disruptor.mjs").read_text(encoding="utf-8")
 CSP = (
     "default-src 'none'; script-src 'self'; style-src 'self'; "
     "connect-src 'none'; img-src 'none'; base-uri 'none'; "

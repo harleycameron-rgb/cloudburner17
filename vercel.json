@@ -1,8 +1,11 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "functions": {
+    "backend/main.py": {
+      "includeFiles": "{src/**,backend/**}"
+    },
     "backend/scandoc_page.py": {
-      "includeFiles": "{backend/scandoc/**,src/**,root_disruptor.mjs}"
+      "includeFiles": "{backend/scandoc/**,src/**}"
     }
   }
 }
