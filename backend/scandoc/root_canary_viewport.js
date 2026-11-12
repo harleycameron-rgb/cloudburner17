@@ -1,4 +1,4 @@
-import {CANARY_ID,fixture,move,disrupt,diagnose} from '../../root_disruptor.mjs';
+import {CANARY_ID,fixture,move,disrupt,diagnose} from './root_disruptor.mjs';
 export function mountRootCanary(doc=document){
  const el=id=>doc.getElementById(id),canvas=el('root-canary-canvas'),status=el('root-canary-status'),output=el('root-canary-result');
  if(!canvas||!status||!output)return ()=>{};
