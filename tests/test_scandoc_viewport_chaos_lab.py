@@ -37,3 +37,11 @@ def test_source_and_sandbox_have_separate_canvases():
     assert html.count('id="lab-source"') == 1
     assert html.count('id="lab-sandbox"') == 1
     assert 'Double splat (sandbox only)' in html
+
+
+def test_missing_canvas_context_disables_lab_controls():
+    js = JS.read_text(encoding="utf-8")
+    assert "if (!ctxA || !ctxB)" in js
+    assert 'document.querySelectorAll(".lab input, .lab button")' in js
+    assert "control.disabled = true" in js
+    assert "Chaos Lab unavailable" in js
