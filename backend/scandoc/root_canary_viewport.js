@@ -21,7 +21,7 @@ export function mountRootCanary(doc=document){
   output.textContent=JSON.stringify({...report,tick:current.tick,translation:current.translation,referenceSnapshot:base.cube.snapshot1536.slice(0,12)+'…',referenceUnchanged:true},null,2);
  };
  const interval=setInterval(()=>{tick++;current=move(base,[tick*.012,Math.sin(tick*.025)*.2,0]);if(injected)current=disrupt(current);paint()},200);
- el('root-canary-inject')?.addEventListener('click',()=>{injected=true;paint()});
- el('root-canary-clear')?.addEventListener('click',()=>{injected=false;paint()});
+ el('root-canary-inject')?.addEventListener('click',()=>{injected=true;current=disrupt(move(base,current.translation));paint()});
+ el('root-canary-clear')?.addEventListener('click',()=>{injected=false;current=move(base,current.translation);paint()});
  paint();return ()=>clearInterval(interval);
 }
