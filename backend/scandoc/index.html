@@ -39,6 +39,17 @@
       <p id="lab-status" role="status">No observation captured. Sentinel lineage unchanged.</p>
       <pre id="lab-result" aria-live="polite">Candidate count: unresolved · confirmed false invariants: 0 · native firing: disabled.</pre>
     </section>
+    <section class="lab" aria-labelledby="root-canary-title">
+      <h2 id="root-canary-title">Root disruptor / identified read-only canary</h2>
+      <p class="warning">SYNTHETIC FIXTURE ONLY · not a Sentinel receipt, derived 1536 snapshot or measured geometry. The canary cannot write to the engine or promote a result.</p>
+      <canvas id="root-canary-canvas" width="760" height="330" aria-label="Read-only synthetic eight-arm drift canary"></canvas>
+      <div class="lab-actions">
+        <button id="root-canary-inject" type="button">Inject identified Gain disruption (sandbox only)</button>
+        <button id="root-canary-clear" type="button">Clear sandbox disruption</button>
+      </div>
+      <p id="root-canary-status" role="status">Loading isolated fixture.</p>
+      <pre id="root-canary-result" aria-live="polite">Awaiting diagnostic.</pre>
+    </section>
     <button id="demo">Run local synthetic demonstration</button>
     <button id="json" disabled>Export local JSON</button>
     <button id="csv" disabled>Export local CSV</button>

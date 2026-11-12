@@ -7,8 +7,9 @@ from fastapi.responses import HTMLResponse, RedirectResponse, Response
 # Preload before the full application's supervisor installs its filesystem guard.
 ASSETS = {
     name: (Path(__file__).parent / "scandoc" / name).read_text(encoding="utf-8")
-    for name in ("index.html", "app.js", "model.js", "style.css")
+    for name in ("index.html", "app.js", "model.js", "style.css", "root_canary_viewport.js")
 }
+ASSETS["root_disruptor.mjs"] = (Path(__file__).parent.parent / "root_disruptor.mjs").read_text(encoding="utf-8")
 CSP = (
     "default-src 'none'; script-src 'self'; style-src 'self'; "
     "connect-src 'none'; img-src 'none'; base-uri 'none'; "
@@ -27,7 +28,8 @@ async def scandoc():
 @router.get("/scandoc/{asset}")
 async def scandoc_asset(asset: str):
     media = {"app.js": "text/javascript", "model.js": "text/javascript",
-             "style.css": "text/css"}
+             "style.css": "text/css", "root_canary_viewport.js": "text/javascript",
+             "root_disruptor.mjs": "text/javascript"}
     if asset not in media:
         raise HTTPException(status_code=404, detail="Unknown sandbox asset")
     return Response(ASSETS[asset], media_type=media[asset],
