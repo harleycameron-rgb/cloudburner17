@@ -1,3 +1,4 @@
+import { mountRootCanary } from "./root_canary_viewport.js";
 import { syntheticDemo, contextSeed, createController, nextProposal, toCSV } from "./model.js";
 
 const $ = id => document.getElementById(id);
@@ -249,3 +250,5 @@ $("proposal").addEventListener("click", async () => {
   });
   draw();
 })();
+
+mountRootCanary();
