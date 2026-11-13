@@ -1,8 +1,14 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "functions": {
-    "backend/scandoc_page.py": {
-      "includeFiles": "{backend/scandoc/**,src/**,root_disruptor.mjs}"
+    "api/index.py": {
+      "includeFiles": "{backend/scandoc_page.py,backend/scandoc/**}"
     }
-  }
+  },
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/api/index"
+    }
+  ]
 }
