@@ -171,6 +171,136 @@
     return distances;
   }
 
+  function pointCloud(value) {
+    if (!value || typeof value !== "object" || Array.isArray(value) ||
+        typeof value.units !== "string" || !value.units.trim() ||
+        !Array.isArray(value.origin) || value.origin.length !== 3 ||
+        Array.from(value.origin).some((coordinate) => !Number.isFinite(coordinate)) ||
+        !Array.isArray(value.points) || value.points.length === 0 ||
+        value.points.length > 64 ||
+        (value.edges !== undefined && !Array.isArray(value.edges))) {
+      throw new TypeError("A point cloud needs units, an origin, and points");
+    }
+
+    const points = new Map();
+    for (const point of Array.from(value.points)) {
+      if (!point || typeof point !== "object" || Array.isArray(point) ||
+          typeof point.id !== "string" || !point.id ||
+          !Array.isArray(point.position) || point.position.length !== 3 ||
+          Array.from(point.position).some((coordinate) => !Number.isFinite(coordinate)) ||
+          points.has(point.id)) {
+        throw new TypeError("Point records need unique IDs and finite 3D positions");
+      }
+      points.set(point.id, Array.from(point.position));
+    }
+
+    const edges = value.edges === undefined ? null : new Map();
+    if (edges && value.edges.length > 2016) {
+      throw new TypeError("Point-cloud edge count exceeds the supported bound");
+    }
+    for (const edge of edges ? Array.from(value.edges) : []) {
+      if (!Array.isArray(edge) || edge.length !== 2) {
+        throw new TypeError("Edges must connect two distinct point IDs");
+      }
+      const endpoints = Array.from(edge);
+      if (endpoints.some((id) => typeof id !== "string" || !points.has(id)) ||
+          endpoints[0] === endpoints[1]) {
+        throw new TypeError("Edges must connect two distinct point IDs");
+      }
+      endpoints.sort();
+      const key = JSON.stringify(endpoints);
+      if (edges.has(key)) throw new TypeError("Duplicate undirected edge");
+      edges.set(key, endpoints);
+    }
+
+    return {
+      units: value.units,
+      origin: Array.from(value.origin),
+      points,
+      edges,
+    };
+  }
+
+  function pointDistance(left, right) {
+    const distance = Math.hypot(...left.map((coordinate, axis) =>
+      coordinate - right[axis]));
+    if (!Number.isFinite(distance)) {
+      throw new RangeError("Point distance is not finite");
+    }
+    return distance;
+  }
+
+  function comparePointClouds(beforeValue, afterValue) {
+    const before = pointCloud(beforeValue);
+    const after = pointCloud(afterValue);
+    if (before.units !== after.units) {
+      throw new TypeError("Point clouds must use the same declared units");
+    }
+
+    const beforeIds = [...before.points.keys()].sort();
+    const afterIds = [...after.points.keys()].sort();
+    const matchedPointIds = beforeIds.filter((id) => after.points.has(id));
+    const missingBefore = afterIds.filter((id) => !before.points.has(id));
+    const missingAfter = beforeIds.filter((id) => !after.points.has(id));
+    let maxRadialError = null;
+    for (const id of matchedPointIds) {
+      const beforeRadius = pointDistance(before.points.get(id), before.origin);
+      const afterRadius = pointDistance(after.points.get(id), after.origin);
+      const error = Math.abs(afterRadius - beforeRadius);
+      maxRadialError = maxRadialError === null ? error : Math.max(maxRadialError, error);
+    }
+
+    const pairwiseDistanceChanges = [];
+    for (let left = 0; left < matchedPointIds.length; left += 1) {
+      for (let right = left + 1; right < matchedPointIds.length; right += 1) {
+        const leftId = matchedPointIds[left];
+        const rightId = matchedPointIds[right];
+        const beforeDistance = pointDistance(
+          before.points.get(leftId), before.points.get(rightId),
+        );
+        const afterDistance = pointDistance(
+          after.points.get(leftId), after.points.get(rightId),
+        );
+        pairwiseDistanceChanges.push({
+          points: [leftId, rightId],
+          before: beforeDistance,
+          after: afterDistance,
+          change: afterDistance - beforeDistance,
+        });
+      }
+    }
+
+    const changedConnectivityEdges = before.edges && after.edges
+      ? [
+        ...[...before.edges].filter(([key]) => !after.edges.has(key)).map(([, edge]) => ({
+          edge, change: "removed",
+        })),
+        ...[...after.edges].filter(([key]) => !before.edges.has(key)).map(([, edge]) => ({
+          edge, change: "added",
+        })),
+      ].sort((left, right) =>
+        (JSON.stringify(left.edge) < JSON.stringify(right.edge) ? -1 :
+          JSON.stringify(left.edge) > JSON.stringify(right.edge) ? 1 : 0) ||
+        (left.change < right.change ? -1 : left.change > right.change ? 1 : 0))
+      : null;
+
+    return {
+      units: before.units,
+      matchedPointIds,
+      missingBefore,
+      missingAfter,
+      maxRadialError,
+      maxPairwiseDistanceChange: pairwiseDistanceChanges.length
+        ? Math.max(...pairwiseDistanceChanges.map(({ change }) => Math.abs(change)))
+        : null,
+      pairwiseDistanceChanges,
+      topologyPreserved: changedConnectivityEdges === null ? null :
+        missingBefore.length === 0 && missingAfter.length === 0 &&
+        changedConnectivityEdges.length === 0,
+      changedConnectivityEdges,
+    };
+  }
+
   function analyzeDual(arms, ports) {
     if (arms.length !== 8 || ports.length !== 6) {
       throw new TypeError("Exact duality checks require eight arms and six ports");
@@ -274,6 +404,7 @@
     transformVector,
     pulseModel,
     pairDistances,
+    comparePointClouds,
     analyzeDual,
     comparePairDistances,
     verifyCubeModel,
