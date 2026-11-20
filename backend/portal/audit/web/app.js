@@ -497,22 +497,38 @@
       const centerPreserved = snapshot.finalArms.every((arm) =>
         arm.position.every((value, axis) =>
           Math.abs((value - snapshot.center[axis]) - arm.vector[axis] * snapshot.radius) < 1e-10));
-      const pairwise = G.comparePairDistances(
-        stateGeometry({ ...configuration, count: 0 }).arms,
-        snapshot.finalArms.map((arm) => arm.vector),
-        1e-10,
-        snapshot.radius,
-      );
+      const referenceArms = stateGeometry({ ...configuration, count: 0 }).arms;
+      const geometryChange = G.comparePointClouds({
+        units: "configured radius units",
+        origin: snapshot.center,
+        points: referenceArms.map((vector, index) => ({
+          id: G.APP_IDS[index],
+          position: snapshot.center.map((value, axis) =>
+            value + vector[axis] * snapshot.radius),
+        })),
+      }, {
+        units: "configured radius units",
+        origin: snapshot.center,
+        points: snapshot.finalArms.map((arm) => ({
+          id: arm.appId,
+          position: arm.position,
+        })),
+      });
       const radialLengthError = Math.max(...snapshot.finalArms.map((arm) =>
         Math.abs(Math.hypot(...arm.position.map((value, axis) =>
           value - snapshot.center[axis])) - snapshot.radius)));
+      const radialPlacementError = Math.max(
+        radialLengthError, radialError * snapshot.radius,
+      );
+      const changedPairs = geometryChange.pairwiseDistanceChanges.filter((entry) =>
+        Math.abs(entry.change) > 1e-10).length;
       let dualText = "API geometry has no declared cube–octahedron duality check.";
       if (snapshot.geometryModel === "cube") {
         const dual = G.analyzeDual(arms, ports);
         dualText = `Midpoint separation ≤ ${dual.maximumMidpointSeparationDegrees.toFixed(4)}°; orthogonality departure ≤ ${dual.maximumOrthogonalityDepartureDegrees.toFixed(4)}°.`;
       }
       setText("geometry-report",
-        `Radial preservation: ${radialLengthError < 1e-10 && radialError < 1e-10 ? "yes" : "no"} (max error ${Math.max(radialLengthError, radialError).toExponential(2)}); shared centre: ${centerPreserved ? "yes" : "no"}; changed arm-pair distances: ${pairwise.changedPairs}/28; ${dualText}`);
+        `Radial preservation (numeric threshold 1e-10 configured radius units): ${radialPlacementError < 1e-10 ? "yes" : "no"} (max placement error ${radialPlacementError.toExponential(2)} configured radius units; max radial change ${geometryChange.maxRadialError.toExponential(2)} configured radius units); shared centre: ${centerPreserved ? "yes" : "no"}; changed arm-pair distances: ${changedPairs}/28 (threshold 1e-10 configured radius units; max change ${geometryChange.maxPairwiseDistanceChange.toExponential(2)} configured radius units); connectivity: not modeled; ${dualText}`);
 
       const selected = Number(document.getElementById("selected-arm").value);
       if (snapshot.geometryModel === "cube") {

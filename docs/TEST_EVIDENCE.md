@@ -410,3 +410,92 @@ curl --silent --show-error --fail --max-time 20 'https://api.github.com/repos/ha
 HTTP **403**, curl **exit 22**. No external application GET smoke succeeded
 or is claimed. Corrected-commit Actions runs `38911106138` and `38911106426`
 were `action_required`; they are not local-test or remote-CI passes.
+
+## Bounded transformation and replay contract — 2026-11-20
+
+The implementation adds `TentacledGeometry.comparePointClouds` to the browser
+UMD module and uses it for the audit page's radial and pairwise-distance
+report. It compares records by stable IDs and reports exact undirected
+edge-set changes only when both inputs provide connectivity. Its metrics carry
+the caller's exact unit label; it makes no equivalence or physical-validity
+decision. See [TRANSFORMATION_REPLAY_CONTRACT.md](TRANSFORMATION_REPLAY_CONTRACT.md)
+for the transformation table, workstream ledger, metric definitions, and trust
+limitations.
+
+### Baseline and environment
+
+The checkout was clean at `3336c0cb1f78fe68bae8b88ed3acc7a757ad0c05`.
+Runtime versions were Node.js `v22.23.4`, npm `10.9.9`, Python `3.12.3`, and
+pytest `8.3.5` after installing the already-declared backend/test requirements
+using `backend/constraints-ci.txt`. No repository dependency file was changed.
+The exact environment preparation command was
+`python -m pip install --disable-pip-version-check -c backend/constraints-ci.txt -r backend/requirements.txt httpx pytest`.
+
+Before that installation, `npm test` passed **150/150** and
+`npm run test:typescript` passed **4/4**. Initial Python unittest discovery
+ran 170 tests and had **4 failures, 1 import error, and 30 skips**, attributable
+to missing local `anyio`, `starlette`, pytest, or associated distribution
+metadata. After installing the existing CI-pinned dependencies, baseline
+unittest discovery passed **176 tests with 30 PostgreSQL skips**.
+The baseline backend CI pytest command had **44 passed, 1 failed**:
+`test_root_bundle_includes_all_preloaded_assets` expected an obsolete
+`backend/main.py` deployment function and omitted current preloaded assets.
+The repository's actual root `vercel.json`, `pyproject.toml`, and deployment
+guard configure only the standalone Scandoc entrypoint. The test was corrected
+to assert that exact safe surface and its asset bundle; deployment settings
+were not changed.
+
+On the initial commit, Actions run `44790625373` attempt 1 first appeared
+`action_required` with zero jobs. Attempt 2 later ran nine jobs and failed
+because `backend-tests` still expected the obsolete preview configuration;
+the JavaScript, council, both zero-data matrix jobs, and container jobs
+succeeded, while Required CI failed because its backend dependency failed.
+The deployment jobs were skipped. The failed-job log confirms the same single
+backend assertion reproduced locally; this is baseline evidence, not a failure
+introduced by the implementation.
+
+### Commands and results on the changed tree
+
+| Command | Result |
+| --- | --- |
+| `node --test tests/audit_geometry_contract.test.js tests/sphere_shift_gate.test.js tests/spherical_topology.test.js` | **32 passed, 0 failed** |
+| `npm test` | **160 passed, 0 failed** |
+| `npm run test:typescript` | **4 passed, 0 failed** |
+| `node --test root_disruptor.test.mjs tests/root_canary_viewport.test.mjs` | **7 passed, 0 failed** |
+| `node --check frontend/app.js && node --check backend/scandoc/app.js && node --check backend/scandoc/model.js && node --check backend/portal/audit/web/geometry.js && node --check backend/portal/audit/web/app.js` | Exit **0** |
+| `PYTHONDONTWRITEBYTECODE=1 python -B -m unittest discover -s tests -v` | **176 passed, 30 skipped**, exit **0**; the skips require a disposable PostgreSQL service |
+| `PYTHONDONTWRITEBYTECODE=1 python -B -m pytest -p no:cacheprovider tests` | **150 passed, 30 skipped**, exit **0** |
+| `python -B -m pytest -p no:cacheprovider backend/tests tests/test_ci_deployment.py` | **45 passed, 0 failed**, exit **0**; one pre-existing Starlette/httpx deprecation warning |
+| `PYTHONDONTWRITEBYTECODE=1 python -B src/run_supervised_build.py` | Exit **0** |
+| `PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src python -B -c 'from autonomy import self_verify; assert self_verify()'` | Exit **0** |
+| `python -B -m src.stabiliser && python -B -m src.harmony && python -B -m src.autonomy && python -B -m src.agent_core` | Exit **0** |
+| `python3 -B topology/inspect.py && node examples/spherical-demo.mjs && python -m pip check` | Exit **0**; no broken requirements |
+| `git diff --check` | Exit **0** |
+
+Focused transformation tests include positive controls for rigid rotation,
+joint point/origin translation, reordered records, and reflection; injected
+local-twist and connectivity violations; rehashed record identity distinctions;
+100 inverse cycles and a small injected drift; malformed, sparse, nonfinite,
+oversized, and overflow inputs; and caller-mutation isolation. Existing
+backend research replay tests cover internally rehashed inconsistent payloads.
+Existing spherical tests cover event alteration, reordering, truncation,
+replacement of independently retained heads, and mutation isolation.
+
+The 30 skipped PostgreSQL cases were not run because no disposable database was
+available. No browser automation is configured; browser JavaScript was syntax
+checked and the browser-shared geometry module was exercised under Node, not
+in a real browser. No external model, deployment, network service, physical
+device, or live gate was invoked. Research remains `UNVERIFIED`; the gate stays
+`CLOSED`; sphere writes remain disabled. No literature claims are inferred
+from the task's suggested DOI list.
+
+A separate read-only review noted that two entries in the public source
+manifest did not match the edited local files. Inspection confirmed those
+hashes are pinned to the named upstream `auditBaseline` commit, not intended
+as hashes of local served overrides. The upstream values were preserved; a
+`fileHashScope` field, documentation clarification, and integration assertion
+now make that boundary explicit. This does not authenticate either source.
+
+After commit `29100c0`, Actions run `44791993736` reported
+`action_required` with zero jobs and no failed jobs. It is not remote
+verification of that commit.
