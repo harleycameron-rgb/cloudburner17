@@ -3,8 +3,10 @@
 CLOUDBURNER17 is a deterministic, zero-data surface-to-core invariance engine
 for supervised execution, reproducible sentinels, and drift-aware harmonic
 cycles. Engine state, benchmark results, and adapter buffers remain transient
-in memory. The runtime makes no network or external-state calls and does not
-persist application data, reports, or logs.
+in memory. The contained geometry runtime makes no network or external-state
+calls and does not persist application data, reports, or logs. SCANDOC Zero's
+separate network gateway is opt-in and does not participate in geometry or
+native authority; see [the network architecture](docs/SCANDOC_ZERO_NETWORK_ARCHITECTURE.md).
 
 The repository also includes the multi-agent invariant admission contract,
 living-invariant predicates, modular torsion/hash commitment specification, and

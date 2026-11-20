@@ -17,9 +17,11 @@ from fastapi.responses import HTMLResponse
 if __package__:
     from .scandoc_page import router as scandoc_router
     from .integration_page import router as integration_router, portal as portal_home
+    from .network_gateway import router as network_gateway_router
 else:
     from scandoc_page import router as scandoc_router
     from integration_page import router as integration_router, portal as portal_home
+    from network_gateway import router as network_gateway_router
 
 from admission import evaluate_submission
 from supervisor import Supervisor
@@ -58,6 +60,7 @@ async def lifespan(app):
 app = FastAPI(lifespan=lifespan)
 app.include_router(scandoc_router)
 app.include_router(integration_router)
+app.include_router(network_gateway_router)
 
 @app.get("/", response_class=HTMLResponse)
 async def integrated_home():

@@ -8,12 +8,11 @@ from __future__ import annotations
 
 import hashlib
 import json
-import os
 import time
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Sequence
 
-import httpx
+from .network_gateway import GatewayError, NetworkGateway
 
 DEFAULT_MODELS = [
     "openai/gpt-4o",
@@ -22,9 +21,6 @@ DEFAULT_MODELS = [
     "moonshotai/kimi-k3",
     "perplexity/sonar-pro",
 ]
-
-OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
-
 
 @dataclass
 class ModelReply:
@@ -91,10 +87,12 @@ def call_model(
     api_key: Optional[str] = None,
     temperature: float = 0.4,
     max_tokens: int = 1024,
+    data_classification: Optional[str] = None,
 ) -> ModelReply:
-    api_key = api_key or os.getenv("OPENROUTER_API_KEY")
-    if not api_key:
-        raise RuntimeError("OPENROUTER_API_KEY not set")
+    if api_key:
+        raise RuntimeError("Pass outbound credentials through the network gateway only")
+    if data_classification not in {"public", "synthetic"}:
+        raise RuntimeError("Explicit public or synthetic data classification required")
 
     headers = {
         "Authorization": f"Bearer {api_key}",
@@ -109,12 +107,32 @@ def call_model(
         "temperature": temperature,
         "max_tokens": max_tokens,
     }
+    messages_digest = hashlib.sha512(
+        json.dumps(
+            messages, sort_keys=True, separators=(",", ":"), ensure_ascii=False
+        ).encode("utf-8")
+    ).hexdigest()
+    gateway_request = {
+        "service": "openrouter",
+        "operation": "chat_completions",
+        "mode": "analysis",
+        "data_classification": data_classification,
+        "provenance": {
+            "source": "caller-supplied-prompt",
+            "revision": "unverified",
+            "sha512": messages_digest,
+        },
+        "payload": body,
+    }
 
     t0 = time.perf_counter()
-    with httpx.Client(timeout=60.0) as client:
-        resp = client.post(OPENROUTER_URL, headers=headers, json=body)
-        resp.raise_for_status()
-        data = resp.json()
+    try:
+        result = NetworkGateway.from_env().dispatch_internal(gateway_request)
+    except GatewayError as error:
+        raise RuntimeError(error.code) from None
+    if result["upstream_status"] < 200 or result["upstream_status"] >= 300:
+        raise RuntimeError(f"LLM service returned HTTP {result['upstream_status']}")
+    data = result["response"]
 
     latency = (time.perf_counter() - t0) * 1000
     content = data["choices"][0]["message"]["content"]
@@ -133,6 +151,7 @@ def run_council(
     chairman: Optional[str] = None,
     rounds: int = 1,
     api_key: Optional[str] = None,
+    data_classification: Optional[str] = None,
 ) -> CouncilResult:
     """
     Fully autonomous multi-model collaboration.
@@ -158,7 +177,12 @@ def run_council(
     first_round = CouncilRound(round_id=0, prompt=topic)
     for model in models:
         try:
-            reply = call_model(model, messages, api_key=api_key)
+            reply = call_model(
+                model,
+                messages,
+                api_key=api_key,
+                data_classification=data_classification,
+            )
             first_round.replies.append(reply)
         except Exception as e:
             first_round.replies.append(
@@ -184,7 +208,13 @@ def run_council(
     ]
 
     try:
-        final = call_model(chairman, chair_messages, api_key=api_key, max_tokens=1500)
+        final = call_model(
+            chairman,
+            chair_messages,
+            api_key=api_key,
+            max_tokens=1500,
+            data_classification=data_classification,
+        )
         final_text = final.content
     except Exception as e:
         final_text = f"[Chairman error] {e}"
@@ -204,18 +234,25 @@ def autonomous_collaboration(
     topic: str,
     models: Optional[Sequence[str]] = None,
     chairman: Optional[str] = None,
+    data_classification: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
     Public entry point. Returns a pure dict that can be sentinel-verified
     and never touches disk.
     """
-    return run_council(topic=topic, models=models, chairman=chairman).to_dict()
+    return run_council(
+        topic=topic,
+        models=models,
+        chairman=chairman,
+        data_classification=data_classification,
+    ).to_dict()
 
 
 if __name__ == "__main__":
-    # Quick local test (requires OPENROUTER_API_KEY)
+    # Quick local test (requires the opt-in network gateway).
     out = autonomous_collaboration(
-        "What is the most robust way to prevent context drift in multi-agent LLM systems?"
+        "What is the most robust way to prevent context drift in multi-agent LLM systems?",
+        data_classification="synthetic",
     )
     print(json.dumps(out, indent=2)[:2000])
     print("\nSentinel:", out["sentinel"][:32], "...")
