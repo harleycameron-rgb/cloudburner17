@@ -428,6 +428,8 @@ The checkout was clean at `3336c0cb1f78fe68bae8b88ed3acc7a757ad0c05`.
 Runtime versions were Node.js `v22.23.4`, npm `10.9.9`, Python `3.12.3`, and
 pytest `8.3.5` after installing the already-declared backend/test requirements
 using `backend/constraints-ci.txt`. No repository dependency file was changed.
+The exact environment preparation command was
+`python -m pip install --disable-pip-version-check -c backend/constraints-ci.txt -r backend/requirements.txt httpx pytest`.
 
 Before that installation, `npm test` passed **150/150** and
 `npm run test:typescript` passed **4/4**. Initial Python unittest discovery
@@ -443,9 +445,14 @@ guard configure only the standalone Scandoc entrypoint. The test was corrected
 to assert that exact safe surface and its asset bundle; deployment settings
 were not changed.
 
-GitHub Actions run `44790625373` on the initial commit was `action_required`
-with **zero jobs**. Its failed-job query returned no failed jobs. This is
-unknown remote CI status, not a pass or code failure.
+On the initial commit, Actions run `44790625373` attempt 1 first appeared
+`action_required` with zero jobs. Attempt 2 later ran nine jobs and failed
+because `backend-tests` still expected the obsolete preview configuration;
+the JavaScript, council, both zero-data matrix jobs, and container jobs
+succeeded, while Required CI failed because its backend dependency failed.
+The deployment jobs were skipped. The failed-job log confirms the same single
+backend assertion reproduced locally; this is baseline evidence, not a failure
+introduced by the implementation.
 
 ### Commands and results on the changed tree
 
@@ -481,3 +488,14 @@ in a real browser. No external model, deployment, network service, physical
 device, or live gate was invoked. Research remains `UNVERIFIED`; the gate stays
 `CLOSED`; sphere writes remain disabled. No literature claims are inferred
 from the task's suggested DOI list.
+
+A separate read-only review noted that two entries in the public source
+manifest did not match the edited local files. Inspection confirmed those
+hashes are pinned to the named upstream `auditBaseline` commit, not intended
+as hashes of local served overrides. The upstream values were preserved; a
+`fileHashScope` field, documentation clarification, and integration assertion
+now make that boundary explicit. This does not authenticate either source.
+
+After commit `29100c0`, Actions run `44791993736` reported
+`action_required` with zero jobs and no failed jobs. It is not remote
+verification of that commit.

@@ -5,6 +5,7 @@
     "repository": "harleycameron-rgb/Tentacled-sphere",
     "commit": "b6c1bd189209f7221b698f6d565bcc60a31d8907"
   },
+  "fileHashScope": "pinned auditBaseline commit; not current locally served files",
   "trajectoryContract": {
     "repository": "harleycameron-rgb/Tentacled-sphere",
     "commit": "94f0a25c01582c567497ae1055d78897ec5e91c4"

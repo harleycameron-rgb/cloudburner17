@@ -8,9 +8,11 @@ interlocks are preserved. Phone sensors, camera and audio remain opt-in.
 
 The audit's pinned helical preview is `/api/tentacled-sphere`. CloudBurner's
 separate geometry remains `/tentacled-sphere`; these schemas are not substituted.
-`/source-manifest.json` records source pins and hashes. Static files are preloaded
-before the supervisor installs the filesystem guard; requests neither read nor
-write application files. The Vercel builder explicitly includes portal assets.
+`/source-manifest.json` records source pins and hashes for the named upstream
+`auditBaseline` commit; it does not assert hashes for locally served overrides.
+Static files are preloaded before the supervisor installs the filesystem guard;
+requests neither read nor write application files. The Vercel builder explicitly
+includes portal assets.
 
 `POST /integration/research-run` accepts exactly `legs`, `tolerance`, `samples`.
 The six names are tap/surface/gain/habitat/engine/business. It calls the Sphere's

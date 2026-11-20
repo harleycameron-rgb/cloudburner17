@@ -13,6 +13,8 @@ with TestClient(app) as c:
     assert c.get('/supervisor').status_code==200
     for path in ['/terminal','/geometry.html','/audit','/audit.js','/web/app.js','/web/audio.js','/web/protocol.js','/portal/app.js','/portal/receipt.js','/portal/style.css','/source-manifest.json']:
         assert c.get(path).status_code==200,path
+    manifest=c.get('/source-manifest.json').json()
+    assert manifest['fileHashScope']=='pinned auditBaseline commit; not current locally served files'
     for name in ('tap','surface','spiritlevel','gain','habitat','time','space','lineage'):
         assert c.get('/apps/'+name+'.html').status_code==200
     assert c.get('/modules/TAP.html').status_code==200
