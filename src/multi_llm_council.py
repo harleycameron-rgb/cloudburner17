@@ -12,7 +12,10 @@ import time
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Sequence
 
-from .network_gateway import GatewayError, NetworkGateway
+if __package__:
+    from .network_gateway import GatewayError, NetworkGateway
+else:
+    from network_gateway import GatewayError, NetworkGateway
 
 DEFAULT_MODELS = [
     "openai/gpt-4o",

@@ -1,6 +1,9 @@
 # Zero-personal-data exterior coupling: candidate contract (read-only research)
 
-Status: **PROPOSED / UNVERIFIED**. No connector, engine coupling, native firing, external software or hardware control is authorized by this document.
+Status: **PROPOSED / UNVERIFIED**. Owner clarification authorizes SCANDOC Zero
+network connectivity through the separate, opt-in gateway described in
+`SCANDOC_ZERO_NETWORK_ARCHITECTURE.md`; it does not authorize engine coupling,
+native firing, external software or hardware control.
 
 ## Architecture
 
@@ -15,7 +18,7 @@ The post-separation Sphere may consider **public, non-personal, geometry-relevan
 3. Reject inputs with personal identifiers, individual geolocation, device IDs, credentials, faces/voices, raw user uploads or high-cardinality quasi-identifiers. No raw telemetry, no user profiling.
 4. Require a public data license permitting the intended use; pin schema, source, epoch, coordinate frame, units and content digest. Explicitly distinguish hash commitment from trusted time/origin attestation.
 5. Validate frame conversion, forward/reverse stream relationships, six-face immutability, eight-expression shared transform, paradox-extreme boundary conditions and a known canary disruptor. Fail closed on unknown mapping.
-6. Keep adapters read-only, outbound-disabled by default, with fixed allowlists, bounded size, no dynamic execution, no unreviewed dependencies and no hardware actuation. Network fetches require separate explicit approval and a narrowly scoped proxy.
+6. Keep adapters read-only, outbound-disabled by default, with fixed allowlists, bounded size, no dynamic execution, no unreviewed dependencies and no hardware actuation. The owner-authorized gateway permits only configured services and operations, with hosting egress restrictions and data review; this does not authorize every endpoint or dataset.
 7. Only after independent tests and explicit review may an exterior software/hardware *interface* be proposed. Hardware actuation requires its own authorization and safety interlocks; it is never granted by Root Scour discovery alone.
 
 ## Suggested non-personal source classes

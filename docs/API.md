@@ -2,6 +2,10 @@
 
 The existing supervisor, admission and spherical routes in `backend/main.py`
 are unchanged. SCANDOC does not call them or attach to their lifecycle.
+The authenticated, opt-in server-side network gateway is a separate route; it
+does not call or authorize those geometry/native paths. Its policy and
+deployment limits are documented in
+`SCANDOC_ZERO_NETWORK_ARCHITECTURE.md`.
 
 ## Tentacle Sphere introduction
 
@@ -27,11 +31,12 @@ standalone function does not depend on those outside-root files. The existing
 `/` console remains separate and unchanged in the full application; native
 Vercel runtime packaging is not claimed verified by the sandbox preview.
 
-The page uses only allowlisted, preloaded assets at `/scandoc/{asset}`.
+The standalone page uses only allowlisted, preloaded assets at `/scandoc/{asset}`.
 Preloading occurs before Supervisor installs its process-wide filesystem
-guard. No runtime file reads, storage, API calls, AI keys or transmissions
-are added. CSP sets `connect-src 'none'`; exports require explicit local
-download actions. Do not paste confidential telemetry into the local hook.
+guard. The standalone page itself makes no runtime file reads, storage,
+external API calls, AI-key access or transmissions. CSP sets
+`connect-src 'none'`; exports require explicit local download actions. Do not
+paste confidential telemetry into the local hook.
 
 ### Model and adapter
 

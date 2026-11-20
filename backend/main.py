@@ -11,19 +11,18 @@ if not os.path.isdir(SRC_DIR):
     SRC_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src"))
 sys.path.append(SRC_DIR)
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse
 
 if __package__:
     from .scandoc_page import router as scandoc_router
     from .integration_page import router as integration_router, portal as portal_home
-    from .network_gateway import router as network_gateway_router
 else:
     from scandoc_page import router as scandoc_router
     from integration_page import router as integration_router, portal as portal_home
-    from network_gateway import router as network_gateway_router
 
 from admission import evaluate_submission
+from network_gateway import GatewayError, NetworkGateway
 from supervisor import Supervisor
 from ignite import ignite
 from burn_harness import burn_harness
@@ -60,7 +59,6 @@ async def lifespan(app):
 app = FastAPI(lifespan=lifespan)
 app.include_router(scandoc_router)
 app.include_router(integration_router)
-app.include_router(network_gateway_router)
 
 @app.get("/", response_class=HTMLResponse)
 async def integrated_home():
@@ -73,6 +71,33 @@ async def runtime_stub():
         "status": "ok",
         "timestamp": time.time(),
     }
+
+
+@app.post("/scandoc/network/dispatch")
+async def dispatch_network_request(request: Request):
+    raw = bytearray()
+    async for chunk in request.stream():
+        if len(raw) + len(chunk) > 1_048_576:
+            raise HTTPException(413, "Request body exceeds the gateway limit")
+        raw.extend(chunk)
+    try:
+        payload = json.loads(raw)
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        raise HTTPException(400, "A valid JSON request is required") from None
+
+    try:
+        gateway = NetworkGateway.from_env()
+        return await asyncio.to_thread(
+            gateway.dispatch,
+            payload,
+            request.headers.get("authorization"),
+        )
+    except GatewayError as error:
+        detail = {"code": error.code}
+        receipt = getattr(error, "receipt", None)
+        if receipt is not None:
+            detail["receipt"] = receipt
+        raise HTTPException(error.status_code, detail) from None
 
 
 @app.get("/tentacled-sphere")

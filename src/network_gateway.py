@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import hmac
+import ipaddress
 import json
 import os
 import re
@@ -21,6 +22,8 @@ _REPOSITORY = re.compile(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+\Z")
 _SHA512 = re.compile(r"[0-9a-f]{128}\Z")
 _ALLOWED_MODES = {"observation", "analysis"}
 _MAX_AUDIT_RECEIPTS = 512
+_ENV_GATEWAY = None
+_ENV_GATEWAY_LOCK = threading.Lock()
 
 
 class GatewayError(ValueError):
@@ -65,6 +68,12 @@ class NetworkGateway:
     ):
         if not isinstance(inbound_token, str) or not inbound_token:
             raise GatewayError("INBOUND_AUTH_NOT_CONFIGURED", 503)
+        try:
+            inbound_token = inbound_token.encode("ascii").decode("ascii")
+        except UnicodeEncodeError:
+            raise GatewayError("INBOUND_AUTH_CONFIGURATION_INVALID", 503) from None
+        if len(inbound_token) > 4096:
+            raise GatewayError("INBOUND_AUTH_CONFIGURATION_INVALID", 503)
         if type(services) is not dict or not services:
             raise GatewayError("NO_NETWORK_SERVICES_CONFIGURED", 503)
         self._token = inbound_token
@@ -81,14 +90,19 @@ class NetworkGateway:
 
     @classmethod
     def from_env(cls) -> "NetworkGateway":
-        if os.getenv("SCANDOC_GATEWAY_ENABLED", "").lower() != "true":
-            raise GatewayError("NETWORK_GATEWAY_DISABLED", 404)
-        raw = os.getenv("SCANDOC_GATEWAY_SERVICES", "")
-        try:
-            services = json.loads(raw)
-        except (json.JSONDecodeError, TypeError):
-            raise GatewayError("NETWORK_SERVICE_CONFIGURATION_INVALID", 503) from None
-        return cls(services, os.getenv("SCANDOC_GATEWAY_INBOUND_TOKEN", ""))
+        global _ENV_GATEWAY
+        with _ENV_GATEWAY_LOCK:
+            if _ENV_GATEWAY is not None:
+                return _ENV_GATEWAY
+            if os.getenv("SCANDOC_GATEWAY_ENABLED", "").lower() != "true":
+                raise GatewayError("NETWORK_GATEWAY_DISABLED", 404)
+            raw = os.getenv("SCANDOC_GATEWAY_SERVICES", "")
+            try:
+                services = json.loads(raw)
+            except (json.JSONDecodeError, TypeError):
+                raise GatewayError("NETWORK_SERVICE_CONFIGURATION_INVALID", 503) from None
+            _ENV_GATEWAY = cls(services, os.getenv("SCANDOC_GATEWAY_INBOUND_TOKEN", ""))
+            return _ENV_GATEWAY
 
     @staticmethod
     def _parse_service(name: str, raw: Any) -> dict[str, Any]:
@@ -115,9 +129,19 @@ class NetworkGateway:
             port = parsed.port
         except ValueError:
             raise GatewayError("NETWORK_SERVICE_CONFIGURATION_INVALID", 503) from None
+        hostname = parsed.hostname or ""
+        try:
+            ipaddress.ip_address(hostname)
+            ip_literal = True
+        except ValueError:
+            ip_literal = False
         if (
             parsed.scheme != "https"
-            or not parsed.hostname
+            or ip_literal
+            or not re.fullmatch(
+                r"(?=.{1,253}\Z)(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+[A-Za-z]{2,63}",
+                hostname,
+            )
             or parsed.username is not None
             or parsed.password is not None
             or parsed.path not in ("", "/")
@@ -165,20 +189,23 @@ class NetworkGateway:
             ):
                 raise GatewayError("NETWORK_SERVICE_CONFIGURATION_INVALID", 503)
             method, path, modes = policy["method"], policy["path"], policy["modes"]
+            template_path = (
+                path.replace("{repository}", "OWNER/REPO")
+                if isinstance(path, str)
+                else ""
+            )
             if (
-                method not in {"GET", "POST"}
+                not isinstance(method, str)
+                or method not in {"GET", "POST"}
                 or not isinstance(path, str)
-                or not path.startswith("/")
                 or path.startswith("//")
-                or "\\" in path
-                or "?" in path
-                or "#" in path
-                or "%" in path
+                or not re.fullmatch(r"/[A-Za-z0-9._~/-]+", template_path)
                 or any(segment in {".", ".."} for segment in path.split("/"))
                 or set(re.findall(r"\{([^{}]+)\}", path)) - {"repository"}
                 or ("{" in re.sub(r"\{repository\}", "", path))
                 or ("}" in re.sub(r"\{repository\}", "", path))
                 or type(modes) is not list
+                or not all(isinstance(item, str) for item in modes)
                 or not modes
                 or not set(modes) <= _ALLOWED_MODES
                 or (method == "POST" and "observation" in modes)
@@ -197,7 +224,7 @@ class NetworkGateway:
         if type(timeout) not in (int, float) or not 0 < timeout <= 30:
             raise GatewayError("NETWORK_SERVICE_CONFIGURATION_INVALID", 503)
         return {
-            "host": parsed.hostname,
+            "host": hostname.lower(),
             "operations": parsed_operations,
             "credential_env": credential_env,
             "repositories": frozenset(repositories),
@@ -271,10 +298,19 @@ class NetworkGateway:
 
     def receipts(self) -> list[dict[str, Any]]:
         with self._lock:
-            return [dict(receipt) for receipt in self._receipts]
+            return [json.loads(_canonical(receipt)) for receipt in self._receipts]
 
     def dispatch(self, request: Any, authorization: str | None) -> dict[str, Any]:
-        if not hmac.compare_digest(authorization or "", "Bearer " + self._token):
+        try:
+            presented = (
+                authorization.encode("ascii")
+                if isinstance(authorization, str)
+                else b""
+            )
+        except UnicodeEncodeError:
+            presented = b""
+        expected = ("Bearer " + self._token).encode("ascii")
+        if not hmac.compare_digest(presented, expected):
             raise GatewayError("AUTHENTICATION_REQUIRED", 401)
         return self._dispatch(request)
 
@@ -313,12 +349,37 @@ class NetworkGateway:
             raise GatewayError("DATA_CLASSIFICATION_FORBIDDEN", 403)
 
         provenance = request["provenance"]
+        source = (
+            provenance.get("source")
+            if type(provenance) is dict
+            else None
+        )
+        try:
+            parsed_source = (
+                urlsplit(source)
+                if isinstance(source, str) and "://" in source
+                else None
+            )
+        except ValueError:
+            raise GatewayError("PROVENANCE_REQUIRED", 400) from None
         if (
             type(provenance) is not dict
             or set(provenance) != {"source", "revision", "sha512"}
-            or not isinstance(provenance["source"], str)
-            or not provenance["source"]
-            or len(provenance["source"]) > 2048
+            or not isinstance(source, str)
+            or not source
+            or len(source) > 2048
+            or any(ord(char) < 0x20 or ord(char) == 0x7F for char in source)
+            or (
+                parsed_source is not None
+                and (
+                    parsed_source.scheme != "https"
+                    or not parsed_source.hostname
+                    or parsed_source.username is not None
+                    or parsed_source.password is not None
+                    or parsed_source.query
+                    or parsed_source.fragment
+                )
+            )
             or not isinstance(provenance["revision"], str)
             or not provenance["revision"]
             or len(provenance["revision"]) > 256
@@ -350,7 +411,9 @@ class NetworkGateway:
         method = operation["method"]
         payload = request["payload"]
         if policy["models"] and (
-            type(payload) is not dict or payload.get("model") not in policy["models"]
+            type(payload) is not dict
+            or not isinstance(payload.get("model"), str)
+            or payload.get("model") not in policy["models"]
         ):
             raise GatewayError("MODEL_NOT_ALLOWLISTED", 403)
         if method == "GET":
@@ -375,22 +438,31 @@ class NetworkGateway:
             if len(body) > policy["request_bytes"]:
                 raise GatewayError("REQUEST_TOO_LARGE", 413)
             target = path
-        encoded_request = _canonical(
-            {
-                "service": service_name,
-                "operation": operation_name,
-                "mode": mode,
-                "classification": request["data_classification"],
-                "provenance": provenance,
-                "payload": payload,
-                "repository": repository,
-            }
-        )
+        try:
+            encoded_request = _canonical(
+                {
+                    "service": service_name,
+                    "operation": operation_name,
+                    "mode": mode,
+                    "classification": request["data_classification"],
+                    "provenance": provenance,
+                    "payload": payload,
+                    "repository": repository,
+                }
+            )
+        except (TypeError, ValueError, UnicodeEncodeError):
+            raise GatewayError("REQUEST_SCHEMA_INVALID", 400) from None
         if len(encoded_request) > policy["request_bytes"]:
             raise GatewayError("REQUEST_TOO_LARGE", 413)
 
         credential = self._credential_lookup(policy["credential_env"])
-        if not credential:
+        if (
+            not isinstance(credential, str)
+            or not credential
+            or len(credential) > 8192
+            or "\r" in credential
+            or "\n" in credential
+        ):
             raise GatewayError("OUTBOUND_CREDENTIAL_NOT_CONFIGURED", 503)
         self._rate_limit(service_name, operation_name, policy["rate"])
         headers = {
@@ -412,7 +484,10 @@ class NetworkGateway:
                 timeout=policy["timeout"],
                 response_bytes=policy["response_bytes"],
             )
+            if len(response_body) > policy["response_bytes"]:
+                raise GatewayError("UPSTREAM_RESPONSE_TOO_LARGE", 502)
             response_digest = _digest(response_body)
+            credential_echoed = credential.encode("utf-8") in response_body
             receipt = self._record(
                 service_name,
                 operation_name,
@@ -421,7 +496,9 @@ class NetworkGateway:
                 provenance,
                 status,
                 response_digest,
-                "completed",
+                "response-rejected-credential"
+                if credential_echoed
+                else "completed",
             )
         except Exception as error:
             receipt = self._record(
@@ -437,12 +514,18 @@ class NetworkGateway:
             if isinstance(error, GatewayError):
                 error.receipt = receipt
                 raise
-            raise GatewayError("UPSTREAM_REQUEST_FAILED", 502) from None
+            wrapped = GatewayError("UPSTREAM_REQUEST_FAILED", 502)
+            wrapped.receipt = receipt
+            raise wrapped from None
 
         try:
             response = json.loads(response_body) if response_body else None
         except (json.JSONDecodeError, UnicodeDecodeError):
             response = response_body.decode("utf-8", errors="replace")
+        if credential_echoed:
+            error = GatewayError("UPSTREAM_RESPONSE_CONTAINS_CREDENTIAL", 502)
+            error.receipt = receipt
+            raise error
         return {
             "upstream_status": status,
             "content_type": content_type,

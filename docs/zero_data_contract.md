@@ -12,7 +12,10 @@
   available for captured subprocess output; blocked attempts remain sticky.
 - Deterministic execution only.
 - Sentinel hashes must be reproducible.
-- No application external-state calls or persistent logs.
+- The contained engine makes no external-state calls or persistent logs.
+- The separate, opt-in SCANDOC Zero gateway is outside that engine contract;
+  its allowlists and limitations are defined in
+  `SCANDOC_ZERO_NETWORK_ARCHITECTURE.md`.
 - Deployment infrastructure may store container images outside the engine
   runtime; the application container is not configured with a data volume.
 - Harmony and stabiliser modules enforce invariance.
